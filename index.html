@@ -20862,14 +20862,43 @@ function init(){
 }
 init();
 
-/* ============ PWA Service Worker 注册（离线支持） ============ */
+/* ============ PWA Service Worker 注册（离线支持 + 自动更新检测） ============ */
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
     navigator.serviceWorker.register('./sw.js')
-      .then(reg=>{ console.log('SW 注册成功:', reg.scope); })
+      .then(reg=>{
+        console.log('SW 注册成功:', reg.scope);
+        // 检测新版本
+        reg.addEventListener('updatefound', ()=>{
+          const newWorker = reg.installing;
+          newWorker.addEventListener('statechange', ()=>{
+            if(newWorker.state === 'installed' && navigator.serviceWorker.controller){
+              // 有新版本，提示用户刷新
+              showUpdateBar();
+            }
+          });
+        });
+      })
       .catch(err=>{ console.warn('SW 注册失败:', err); });
   });
+  // 每分钟检查一次更新
+  setInterval(()=>{
+    navigator.serviceWorker.getRegistration().then(reg=>{
+      if(reg) reg.update();
+    });
+  }, 60000);
 }
+// 显示更新提示条
+function showUpdateBar(){
+  if(document.getElementById('updateBar')) return;
+  const bar = document.createElement('div');
+  bar.id = 'updateBar';
+  bar.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:var(--primary);color:#fff;padding:12px 16px;text-align:center;font-size:14px;font-weight:600;box-shadow:0 2px 10px rgba(0,0,0,.2);cursor:pointer;';
+  bar.innerHTML = '🔄 发现新版本！点击刷新立即更新';
+  bar.onclick = ()=>{ window.location.reload(); };
+  document.body.appendChild(bar);
+}
+window.showUpdateBar = showUpdateBar;
 // 检测是否以 PWA 模式运行（添加到主屏幕后）
 window.isPWA = window.matchMedia('(display-mode: standalone)').matches ||
                window.navigator.standalone === true ||
