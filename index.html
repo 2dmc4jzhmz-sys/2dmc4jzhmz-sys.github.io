@@ -150,6 +150,37 @@
     cursor:pointer; font-size:18px; transition:.15s; color:var(--ink); border:1px solid var(--separator)}
   .round-btn:hover{background:var(--primary); color:#fff; border-color:var(--primary)}
   .round-btn:active{transform:scale(.92)}
+  .rec-word-btn.rec{background:var(--danger); color:#fff; border-color:var(--danger); animation:pulse 1s infinite}
+  .word-rec-fb{min-height:0; margin:4px 0}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+  /* ===== 学习路径 ===== */
+  .path-card{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;
+    border:1.5px solid var(--ring);background:var(--card);cursor:pointer;transition:.15s;
+    margin-bottom:10px;position:relative}
+  .path-card:hover{border-color:var(--primary);transform:translateY(-1px)}
+  .path-card:active{transform:scale(.99)}
+  .path-card.on{border-width:2px}
+  .path-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+    font-size:24px;flex-shrink:0;color:#fff}
+  .path-info{flex:1;min-width:0}
+  .path-name{font-weight:600;font-size:16px;color:var(--ink);margin-bottom:2px}
+  .path-desc{font-size:13px;color:var(--sub);margin-bottom:4px;line-height:1.4}
+  .path-meta{font-size:12px;color:var(--muted);font-weight:500}
+  .path-check{position:absolute;right:16px;top:50%;transform:translateY(-50%);
+    width:24px;height:24px;border-radius:50%;background:var(--ok);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
+  .path-current{padding:16px;background:var(--card2);border-radius:12px;margin-bottom:8px}
+  .path-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}
+  .pstat{text-align:center;padding:8px;background:var(--card);border-radius:10px}
+  .pstat b{display:block;font-size:20px;font-weight:700;color:var(--ink)}
+  .pstat span{font-size:11px;color:var(--sub)}
+  .path-bar{height:8px;background:var(--separator);border-radius:4px;overflow:hidden;margin-top:8px}
+  .path-bar-fill{height:100%;border-radius:4px;transition:width .5s}
+  .ielts-word{display:inline-block;padding:6px 12px;margin:4px;background:var(--card2);
+    border-radius:8px;font-size:13px;cursor:pointer;transition:.12s;color:var(--ink);
+    border:1px solid var(--separator)}
+  .ielts-word:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
   .opts{display:grid; grid-template-columns:1fr 1fr; gap:10px; max-width:560px; margin:0 auto}
   .opt{border:1.5px solid var(--ring); background:var(--card); border-radius:12px; padding:14px 16px;
     cursor:pointer; font-size:15px; font-weight:500; transition:.12s; text-align:center; color:var(--ink)}
@@ -198,34 +229,134 @@
   .rec-btn:active{transform:scale(.97)}
 
   .grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px}
-  @media(max-width:720px){.grid2{grid-template-columns:1fr}.opts{grid-template-columns:1fr}}
+  @media(max-width:720px){.grid2{grid-template-columns:1fr}}
 
-  /* ===== iOS 横竖屏适配 ===== */
-  @media(orientation:landscape) and (max-height:500px){
-    .wrap{padding:6px 20px 50px}
-    header{padding:8px 4px 10px}
+  /* ===== iPhone 竖屏通用优化（320px-430px）===== */
+  @media(orientation:portrait) and (max-width:430px){
+    .wrap{padding:6px 12px 90px}
+    /* 顶部导航栏 */
+    header{padding:8px 2px 10px; gap:8px}
     .logo{font-size:18px}
-    .stat{padding:5px 10px;font-size:12px}
+    .stats{gap:5px}
+    .stat{padding:5px 9px; font-size:11.5px}
     .stat b{font-size:14px}
-    nav{margin-bottom:12px}
-    nav button{padding:7px 12px;font-size:12.5px}
-    .card{padding:14px 18px;margin-bottom:10px}
-    h2{font-size:18px}
-    .qword{font-size:28px !important;margin:8px 0 !important}
-    .ball{width:100px;height:100px}
-    .ball svg{width:100px;height:100px}
-    .map{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
-    .chat{height:160px}
+    .profiles button{padding:5px 10px; font-size:12px}
+    /* 功能导航：横向滚动，不换行 */
+    nav{gap:0; margin:4px 0 14px; padding:2px; overflow-x:auto; -webkit-overflow-scrolling:touch;
+      scrollbar-width:none; -ms-overflow-style:none}
+    nav::-webkit-scrollbar{display:none}
+    nav button{padding:8px 12px; font-size:12.5px; flex:0 0 auto; white-space:nowrap}
+    /* 卡片 */
+    .card{padding:14px 16px; margin-bottom:12px}
+    h2{font-size:17px}
+    .desc{font-size:12.5px}
+    /* 战斗界面 */
+    .qword{font-size:32px; margin:10px 0 4px}
+    .qpho{font-size:14px}
+    .opts{gap:8px; max-width:100%}
+    .opt{padding:12px 10px; font-size:14px}
+    input.typing{width:100%; max-width:280px; font-size:17px; padding:11px 14px}
+    .round-btn{width:42px; height:42px; font-size:17px}
+    .next-btn{padding:11px 28px; font-size:15px}
+    /* 剧情地图 */
+    .map{grid-template-columns:repeat(auto-fill,minmax(105px,1fr)); gap:8px}
+    .node{padding:12px 8px}
+    .node .stage{font-size:24px}
+    .node .n{font-size:13px}
+    /* 语言选择门 */
+    .langbox .big{font-size:24px}
+    .lcard{min-width:140px; max-width:100%; padding:22px 16px}
+    .lcard .li{font-size:40px}
+    .lcard .ln{font-size:20px}
+    /* 覆盖率球 */
+    .ball{width:120px; height:120px}
+    .ball svg{width:120px; height:120px}
+    /* 错题本 */
+    .mitem{padding:12px 14px; gap:10px}
+    .mitem .mw{font-size:16px; min-width:90px}
+    .mitem .mzh{font-size:13px; min-width:100%}
+    .mstat{padding:6px 10px; font-size:12px}
+    .mstat b{font-size:15px}
+    /* 听力/跟读 */
+    .big-sentence{font-size:18px}
+    .chat{height:250px}
+    .keyrow{gap:6px}
+    .btn{padding:9px 16px; font-size:13.5px}
+    /* 启蒙学院 */
+    .abc{grid-template-columns:repeat(auto-fill,minmax(50px,1fr)); gap:6px}
+    .ab{padding:8px 2px}
+    .ab .L{font-size:20px}
+    .phoGrid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:6px}
+    /* 表格 */
+    table{font-size:12.5px}
+    th,td{padding:7px 8px}
   }
-  @media(orientation:portrait) and (max-width:400px){
-    .wrap{padding:8px 12px 80px}
-    .qword{font-size:30px}
-    .opts{gap:8px}
-    .opt{padding:12px;font-size:14px}
-    nav button{padding:8px 11px;font-size:12.5px}
+
+  /* ===== iPhone 小屏竖屏（<375px，SE等）===== */
+  @media(orientation:portrait) and (max-width:374px){
+    .wrap{padding:6px 10px 80px}
+    .logo{font-size:16px}
+    .stat{padding:4px 7px; font-size:11px}
+    .stat b{font-size:13px}
+    nav button{padding:7px 10px; font-size:12px}
+    .qword{font-size:28px}
+    .opt{padding:10px 8px; font-size:13px}
+    .card{padding:12px 14px}
+    .map{grid-template-columns:repeat(auto-fill,minmax(95px,1fr)); gap:6px}
   }
-  @media(orientation:landscape) and (min-width:700px){
-    .battle-side{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+
+  /* ===== iPhone 横屏优化 ===== */
+  @media(orientation:landscape){
+    .wrap{padding:6px 24px 50px; max-width:900px}
+    header{padding:6px 2px 8px}
+    .logo{font-size:17px}
+    .stats{gap:5px}
+    .stat{padding:4px 9px; font-size:11.5px}
+    .stat b{font-size:13px}
+    nav{margin:4px 0 12px}
+    nav button{padding:6px 11px; font-size:12px}
+    .card{padding:12px 18px; margin-bottom:10px}
+    h2{font-size:16px}
+    .desc{font-size:12px; margin-bottom:10px}
+    /* 战斗界面横屏：左右分栏 */
+    #battle{display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:center; text-align:left}
+    #battle .qword{font-size:30px; margin:0 0 6px; grid-column:1; grid-row:1}
+    #battle .qpho{grid-column:1; grid-row:2}
+    #battle .qpos{grid-column:1; grid-row:3; margin-bottom:0}
+    #battle > div[style*="margin:8px 0 14px"]{grid-column:1; grid-row:4}
+    #battle .opts{grid-column:2; grid-row:1 / span 4; max-width:100%; align-self:center}
+    #battle .feedback{grid-column:1 / -1; grid-row:5; margin-top:10px}
+    #battle .next-row{grid-column:1 / -1; grid-row:6}
+    /* 横屏拼写题 */
+    #battle input.typing{grid-column:1; grid-row:4}
+    /* 剧情地图横屏 */
+    .map{grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:8px}
+    .node{padding:12px 10px}
+    /* 覆盖率球 */
+    .ball{width:110px; height:110px}
+    .ball svg{width:110px; height:110px}
+    /* 聊天框 */
+    .chat{height:200px}
+    /* 语言选择门 */
+    .langbox .big{font-size:24px}
+    .lcard{min-width:180px; padding:20px 16px}
+  }
+
+  /* ===== 横屏小高度（<400px）===== */
+  @media(orientation:landscape) and (max-height:400px){
+    .wrap{padding:4px 20px 40px}
+    .card{padding:10px 16px; margin-bottom:8px}
+    .qword{font-size:26px !important}
+    .ball{width:90px; height:90px}
+    .ball svg{width:90px; height:90px}
+    .chat{height:150px}
+    .map{grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:6px}
+  }
+
+  /* ===== 横屏宽屏（iPad/大屏）===== */
+  @media(orientation:landscape) and (min-width:900px){
+    .wrap{max-width:1000px}
+    #battle{max-width:800px; margin:0 auto}
   }
 
   /* ===== iOS 风格主按钮 ===== */
@@ -365,6 +496,7 @@
 
   <nav id="nav" data-page-node-id="8d0gJEpNX2nGs3Wv9cUPZC">
     <button data-t="today" class="on" data-page-node-id="7LuE2uhWqPtGcoFQg4POT8">🎯 今日任务</button>
+    <button data-t="path" data-page-node-id="path-nav">🧭 学习路径</button>
     <button data-t="battle" data-page-node-id="WzEM8KxZf44jcihOgVkawY">🗺️ 剧情地图</button>
     <button data-t="abc" data-page-node-id="0OvTyIdsctekxDTv02KsqV">🎓 启蒙学院</button>
     <button data-t="listen" data-page-node-id="QJcg6E4SVYlnQLOAKTG6eb">👂 听力</button>
@@ -395,6 +527,24 @@
       <h2 data-page-node-id="btAuBhUrYUH8rpq41EBO1E">🎁 收集图鉴（稀有掉落）</h2>
       <p class="desc" data-page-node-id="4H7nSMOt62KE9FXPJnKCXC">答对连击有几率掉落「收藏卡」。集齐一套兑换钻石，解锁炫彩称号。</p>
       <div id="collection" data-page-node-id="tKSepyqQpxC4RO4Ass1T7F"></div>
+    </div>
+  </section>
+
+  <!-- ============ 学习路径 ============ -->
+  <section class="panel" id="p-path" data-page-node-id="path-panel">
+    <div class="card" data-page-node-id="path-card1">
+      <h2 data-page-node-id="path-title">🧭 选择你的学习路径</h2>
+      <p class="desc" data-page-node-id="path-desc">根据你的目标智能推荐词汇范围和学习计划，涵盖中小学、成人0基础、雅思等阶段。</p>
+      <div id="pathGoals" data-page-node-id="path-goals"></div>
+    </div>
+    <div class="card" data-page-node-id="path-card2">
+      <h2 data-page-node-id="path-plan-title">📋 当前路径学习计划</h2>
+      <div id="pathInfo" data-page-node-id="path-info"></div>
+    </div>
+    <div class="card" data-page-node-id="path-card3">
+      <h2 data-page-node-id="path-ielts-title">📝 雅思高频词汇（前50）</h2>
+      <p class="desc" data-page-node-id="path-ielts-desc">雅思考试高频词汇，点击可听发音。完整雅思词库已融入学习路径。</p>
+      <div id="ieltsList" data-page-node-id="ielts-list"></div>
     </div>
   </section>
 
@@ -20016,7 +20166,7 @@ let TOTAL_W=0;
 
 /* ============ 双学习者档案 ============ */
 let STORE_KEY="english_planet_v1_en";
-function makeState(){ return {wx:{}, xp:0, streak:0, lastDay:null, done:[], mastered:0, ach:{}, aiKey:"", diamond:0, collect:{}, best:0, today:{date:null,learned:0,reviewed:0,quiz:0}, mistakes:{}}; }
+function makeState(){ return {wx:{}, xp:0, streak:0, lastDay:null, done:[], mastered:0, ach:{}, aiKey:"", diamond:0, collect:{}, best:0, today:{date:null,learned:0,reviewed:0,quiz:0}, mistakes:{}, learningGoal:"general"}; }
 let PROF=null, ACTIVE="adult";
 function loadProfiles(){
   const d=JSON.parse(localStorage.getItem(STORE_KEY)||"{}");
@@ -20145,7 +20295,13 @@ function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.rand
 // 出题队列：到期复习词 > 新词；未到期的已学词不再出现（防止反复）；全做完才自由练习已学词
 function buildPool(lvl){
   const s=S();
-  const ws=WORDS.filter(w=>w.l<=lvl);
+  // ===== 学习路径筛选：根据目标调整词汇范围 =====
+  const goal=s.learningGoal||"general";
+  let goalLvl=lvl;
+  if(goal==="primary") goalLvl=Math.min(lvl,3);      // 中小学：L1-L3
+  else if(goal==="adult") goalLvl=Math.min(lvl,2);     // 成人0基础：L1-L2
+  else if(goal==="ielts") goalLvl=Math.max(lvl,3);     // 雅思：L3-L5 为主
+  const ws=WORDS.filter(w=>w.l<=goalLvl);
   // ===== 错误库优先：按正确率加权抽取 =====
   // 正确率越低权重越高（出现越频繁），正确率越高权重越低（出现越少）
   const mistakeWords=Object.values(s.mistakes||{})
@@ -20187,6 +20343,64 @@ function distractor(cur){
   while(out.length<3 && pool.length){ const w=pool.pop(); if(!set.has(w.w)){set.add(w.w); out.push(w);} }
   return out;
 }
+
+/* ============ 学习路径（中小学/成人0基础/雅思/通用）============ */
+const PATH_CONFIG={
+  general:{name:"通用学习",icon:"🌍",desc:"全部词汇，循序渐进",lvlRange:"L1-L5",daily:20,color:"var(--primary)"},
+  primary:{name:"中小学",icon:"🏫",desc:"覆盖小学到高中核心词汇，打牢基础",lvlRange:"L1-L3",daily:15,color:"var(--ok)"},
+  adult:{name:"成人0基础",icon:"🌱",desc:"从最基础词汇开始，适合零基础成人",lvlRange:"L1-L2",daily:10,color:"var(--warn)"},
+  ielts:{name:"雅思备考",icon:"✈️",desc:"中高级词汇为主，覆盖雅思听说读写",lvlRange:"L3-L5",daily:25,color:"var(--accent)"},
+};
+// 雅思高频词汇（前50展示，完整词库已融入L3-L5）
+const IELTS_HOT=["abandon","abstract","academic","accelerate","accommodate","accompany","accomplish","accumulate","accurate","acknowledge","acquire","adapt","adequate","adjacent","adjust","administrate","advocate","aesthetic","affiliate","aggregate","allocate","alternative","ambiguous","ambitious","analyze","anticipate","apparent","appreciate","approach","appropriate","approximate","arbitrary","articulate","assess","assign","assume","attain","attribute","authentic","authorize","automate","available","aware","beneficial","bias","boost","boundary"];
+function setPath(goal){
+  const s=S(); s.learningGoal=goal; save();
+  renderPath(); refreshAll();
+  toast("已切换到："+PATH_CONFIG[goal].name);
+}
+function renderPath(){
+  const s=S(); const cur=s.learningGoal||"general";
+  // 渲染目标选择
+  document.getElementById("pathGoals").innerHTML=Object.entries(PATH_CONFIG).map(([k,v])=>`
+    <div class="path-card ${cur===k?'on':''}" onclick="setPath('${k}')" style="border-color:${cur===k?v.color:'var(--ring)'};background:${cur===k?'color-mix(in srgb,'+v.color+' 8%,var(--card))':'var(--card)'}">
+      <div class="path-icon" style="background:${v.color}">${v.icon}</div>
+      <div class="path-info">
+        <div class="path-name">${v.name}</div>
+        <div class="path-desc">${v.desc}</div>
+        <div class="path-meta">${v.lvlRange} · 每日${v.daily}词</div>
+      </div>
+      ${cur===k?'<div class="path-check">✓</div>':''}
+    </div>`).join('');
+  // 渲染当前路径信息
+  const cfg=PATH_CONFIG[cur];
+  const totalWords=WORDS.filter(w=>{
+    if(cur==="primary") return w.l<=3;
+    if(cur==="adult") return w.l<=2;
+    if(cur==="ielts") return w.l>=3;
+    return true;
+  }).length;
+  const learned=s.done.length;
+  const pct=Math.round(learned/Math.max(1,totalWords)*100);
+  document.getElementById("pathInfo").innerHTML=`
+    <div class="path-current" style="border-left:4px solid ${cfg.color}">
+      <h3 style="margin:0 0 8px">${cfg.icon} ${cfg.name}</h3>
+      <p style="color:var(--sub);margin:0 0 12px;font-size:14px">${cfg.desc}</p>
+      <div class="path-stats">
+        <div class="pstat"><b>${totalWords}</b><span>总词汇</span></div>
+        <div class="pstat"><b>${learned}</b><span>已学</span></div>
+        <div class="pstat"><b>${pct}%</b><span>进度</span></div>
+        <div class="pstat"><b>${cfg.daily}</b><span>每日目标</span></div>
+      </div>
+      <div class="path-bar"><div class="path-bar-fill" style="width:${pct}%;background:${cfg.color}"></div></div>
+      <p style="margin-top:12px;font-size:13px;color:var(--sub)">💡 建议：每天学习 ${cfg.daily} 个新词 + 复习到期词汇，坚持 30 天可见明显进步。</p>
+    </div>`;
+  // 渲染雅思高频词列表
+  document.getElementById("ieltsList").innerHTML=IELTS_HOT.map(w=>{
+    const wd=WORDS.find(x=>x.w===w);
+    return `<span class="ielts-word" onclick="speak('${w}')" title="${wd?wd.zh:'点击听发音'}">${w}</span>`;
+  }).join('');
+}
+window.setPath=setPath; window.renderPath=renderPath;
 function nextQ(){
   if(sessionPool.length===0) sessionPool=buildPool(lastLvl);
   const qw=sessionPool.shift();
@@ -20204,7 +20418,11 @@ function renderQ(){
       <div class="qpho" style="margin-top:6px;letter-spacing:3px">${CUR_LANG==="ja"
         ? (Q.word.ph[0]+'·'.repeat(Math.max(0,Q.word.ph.length-1))+LANG().spTip(Q.word.ph.length)+'　输入假名或罗马音')
         : (w.w[0].toUpperCase()+'·'.repeat(w.w.length-1)+LANG().spTip(w.w.length))}</div>
-      <button class="round-btn" onclick="speak('${w.w}')">🔊</button>
+      <div style="margin:8px 0;display:flex;gap:8px;justify-content:center;align-items:center">
+        <button class="round-btn" onclick="speak('${w.w}')" title="听发音">🔊</button>
+        <button class="round-btn rec-word-btn" onclick="startWordRec('${w.w}')" title="跟读打分">🎤</button>
+      </div>
+      <div class="word-rec-fb" id="wordRecFb"></div>
       <div style="margin-top:12px"><input class="typing" id="spIn" placeholder="${CUR_LANG==="ja"?"用罗马音或假名拼出这个词的读音":"拼出这个单词"}" onkeydown="if(event.key==='Enter')checkSp()"></div>
       <button class="btn" style="margin-top:10px" onclick="checkSp()">提交</button><div class="feedback" id="fb"></div>`;
     document.getElementById("spIn").focus();
@@ -20213,13 +20431,17 @@ function renderQ(){
     const qText = ce ? w.zh : (ls ? "🔊 听发音，选正确含义" : w.w);
     const qpho = [w.ph, w.pos].filter(Boolean).join(" · ");
     const optHtml = o => {
-      if(ls) return o.zh;                    // 听音选词：听发音，选中文
-      if(ce) return o.w+' <span style="color:var(--sub);font-size:12px">'+o.pos+'</span>'; // 看中选英：选英文
-      return o.zh;                            // 看英选中：看英文，选中文
+      if(ls) return o.zh;
+      if(ce) return o.w+' <span style="color:var(--sub);font-size:12px">'+o.pos+'</span>';
+      return o.zh;
     };
     b.innerHTML=`<div class="qword">${qText}</div>
       <div class="qpho">${qpho}</div>
-      <div style="margin:8px 0 14px"><button class="round-btn" onclick="speak('${w.w}')">🔊</button></div>
+      <div style="margin:8px 0 14px;display:flex;gap:8px;justify-content:center;align-items:center">
+        <button class="round-btn" onclick="speak('${w.w}')" title="听发音">🔊</button>
+        <button class="round-btn rec-word-btn" onclick="startWordRec('${w.w}')" title="跟读打分">🎤</button>
+      </div>
+      <div class="word-rec-fb" id="wordRecFb"></div>
       <div class="opts">${Q.opts.map((o,i)=>`<div class="opt" onclick="answer(${i})">${optHtml(o)}</div>`).join('')}</div>
       <div class="feedback" id="fb"></div>`;
   }
@@ -20640,6 +20862,65 @@ function toggleRec(){
 }
 window.toggleRec=toggleRec;
 
+/* ============ 单词跟读（战斗界面每个单词都可跟读打分）============ */
+let wordRec=null, wordRecording=false;
+function startWordRec(word){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const fb=document.getElementById("wordRecFb");
+  if(!SR){
+    if(fb) fb.innerHTML='<div style="color:var(--sub);font-size:13px;text-align:center;padding:6px">⚠️ 当前浏览器不支持语音识别，iPhone 请用 Safari 打开</div>';
+    return;
+  }
+  // 如果正在录音，停止
+  if(wordRecording && wordRec){ try{ wordRec.stop(); }catch(e){} return; }
+  // 重置所有跟读按钮状态
+  document.querySelectorAll('.rec-word-btn').forEach(b=>{ b.classList.remove('rec'); b.textContent='🎤'; });
+  const btn=event.target;
+  try{
+    wordRec=new SR();
+    wordRec.lang=LANG().rec;
+    wordRec.interimResults=false;
+    wordRec.maxAlternatives=1;
+    wordRec.onresult=e=>{
+      const rawTxt=e.results[0][0].transcript;
+      let pct;
+      if(CUR_LANG==="ja"){
+        const norm=s=>(s||"").replace(/[\s\u3000\u3001\u3002,.!?\uff01\uff1f\u2026\u30fc~\uff5e]/g,"");
+        pct=Math.round(sim2(norm(rawTxt),norm(word))*100);
+      }else{
+        const heard=rawTxt.toLowerCase().replace(/[^a-z ]/g,"").trim();
+        const tg=word.toLowerCase().replace(/[^a-z ]/g,"").trim();
+        const tw=tg.split(" "), hw=heard.split(" ");
+        pct=Math.round(hw.filter(w=>tw.includes(w)).length/Math.max(1,tw.length)*100);
+      }
+      let result;
+      if(pct>=85){ result='<span style="color:var(--ok)">✅ 发音标准！</span>'; addXP(1); sfx('ok'); }
+      else if(pct>=60){ result='<span style="color:var(--warn)">🟡 不错，再练练</span>'; sfx('click'); }
+      else{ result='<span style="color:var(--danger)">🔴 再听一遍慢速跟读</span>'; sfx('no'); }
+      if(fb) fb.innerHTML=`<div style="text-align:center;font-size:13px;padding:8px 12px;background:var(--card2);border-radius:10px;margin:6px 0">🎤 听到："${rawTxt}" · 匹配 <b>${pct}%</b><br>${result}</div>`;
+    };
+    wordRec.onend=()=>{
+      wordRecording=false;
+      document.querySelectorAll('.rec-word-btn').forEach(b=>{ b.classList.remove('rec'); b.textContent='🎤'; });
+    };
+    wordRec.onerror=e=>{
+      wordRecording=false;
+      document.querySelectorAll('.rec-word-btn').forEach(b=>{ b.classList.remove('rec'); b.textContent='🎤'; });
+      if(e.error==='not-allowed'||e.error==='service-not-allowed'){
+        if(fb) fb.innerHTML='<div style="color:var(--danger);font-size:13px;text-align:center;padding:6px">⚠️ 请允许麦克风权限（设置→Safari→麦克风）</div>';
+      }
+    };
+    wordRecording=true;
+    if(btn){ btn.classList.add('rec'); btn.textContent='⏹'; }
+    if(fb) fb.innerHTML='<div style="text-align:center;font-size:13px;color:var(--sub);padding:6px">🎙️ 正在听，请读出这个单词...</div>';
+    wordRec.start();
+  }catch(e){
+    wordRecording=false;
+    if(fb) fb.innerHTML='<div style="color:var(--sub);font-size:13px;text-align:center;padding:6px">⚠️ 语音识别启动失败，请重试</div>';
+  }
+}
+window.startWordRec=startWordRec;
+
 /* ============ 阅读 & 语法 ============ */
 const READINGS_EN=[
   {t:"A Busy Morning",body:"Every morning, I get up at seven. I take a quick shower and make breakfast. Then I walk to the station and take the bus to work. On the bus, I read a little or listen to music. It is a simple life, but I like it.",q:"What does the writer do first in the morning?",opts:["Take the bus","Make breakfast","Take a shower","Read a book"],a:2},
@@ -20851,7 +21132,7 @@ function bootApp(){
   renderProfiles();
   document.getElementById("aiKey").value=s.aiKey||"";
   renderAbc(); renderReading(); renderGrammar(); shadowShow();
-  renderModePick(); renderMap(); refreshTop(); renderMistakes();
+  renderModePick(); renderMap(); refreshTop(); renderMistakes(); renderPath();
   combo=0; lastLvl=1; sessionPool=[];
   if(WORDS.length) startBattle(1);
 }
