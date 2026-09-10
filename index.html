@@ -10,7 +10,6 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="英语星球">
-<meta name="apple-mobile-web-app-orientations" content="portrait landscape">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png">
 <link rel="manifest" href="manifest.json">
@@ -249,6 +248,10 @@ th{color:var(--sub);font-weight:600;font-size:12px}
   .qword{font-size:26px;margin:7px 0 2px}
   .chat{height:36vh}
 }
+
+.bl{display:inline-block;border-bottom:2px solid var(--pri);min-width:60px;text-align:center;color:var(--pri);font-weight:700;padding:0 4px}
+#dictSent{font-size:19px;line-height:1.7;margin:14px 0}
+#synWord{font-size:30px;font-weight:800;color:var(--pri)}
 </style>
 </head>
 <body data-page-node-id="AzafKYxoeyF40zdhGLT9G9">
@@ -408,6 +411,21 @@ th{color:var(--sub);font-weight:600;font-size:12px}
       <div class="feedback" id="shFeedback"></div>
       <p class="hint">提示：说不出来就先慢速跟 3 遍。分数只是参考，敢开口比分数重要。</p>
     </div>
+
+    <div class="card" id="c-dictate">
+      <div class="ch"><span class="ci">✍️</span><h2>听力填空 / 听写</h2></div>
+      <p class="desc">听句子，把空里的词写出来。雅思听力一半分值是填空，这招直接提分。灰色块是首字母+长度提示。</p>
+      <div class="keyrow">
+        <button class="round-btn" onclick="dictateNew()" title="重听本句">🔊</button>
+        <button class="btn ghost" onclick="dictateNew()">换一句</button>
+      </div>
+      <div class="big-sentence" id="dictSent">点「换一句」开始</div>
+      <div class="keyrow">
+        <input class="typing" id="dictIn" placeholder="写下你听到的词" onkeydown="if(event.key==='Enter')dictateCheck()" style="flex:1">
+        <button class="btn" onclick="dictateCheck()">检查</button>
+      </div>
+      <div class="feedback" id="dictFb"></div>
+    </div>
   </section>
 
   <!-- ==================== 读写 ==================== -->
@@ -427,6 +445,19 @@ th{color:var(--sub);font-weight:600;font-size:12px}
       <div class="ch"><span class="ci">🧩</span><h2>语法速查</h2></div>
       <p class="desc">读不懂句子时来这里对一下，不用背，看懂就行。</p>
       <div id="grammar"></div>
+    </div>
+    <div class="card" id="c-synonym">
+      <div class="ch"><span class="ci">🔁</span><h2>同义替换训练</h2></div>
+      <p class="desc">雅思阅读的命门：题目和原文几乎不出现原词，全是同义替换。看词，选出最贴近的意思。</p>
+      <div id="synWrap">
+        <div class="big-sentence" id="synWord">—</div>
+        <p class="muted" id="synEx"></p>
+        <div class="opts" id="synOpts"></div>
+        <div class="feedback" id="synFb"></div>
+      </div>
+      <div class="keyrow" style="justify-content:center">
+        <button class="btn ghost" onclick="synNew()">换一题</button>
+      </div>
     </div>
 
     <div class="card" id="c-ai">
@@ -25491,7 +25522,8 @@ function showPanel(g){
   const p=document.getElementById("p-"+g); if(p) p.classList.add("on");
   if(g==="word"){ renderMap(); renderErr(); }
   if(g==="goal") renderIelts();
-  if(g==="read") renderReading();
+  if(g==="read"){ renderReading(); if(!synCur) synNew(); }
+  if(g==="listen" && !dictCur) dictateNew();
   window.scrollTo({top:0,behavior:"smooth"});
 }
 function goTab(t){
@@ -26927,6 +26959,249 @@ const READINGS_EXTRA_JA=[
 {t:"練習",body:"私は9時に着きました。会議は短かったです。 それから家に帰りました。 少し早かったです。 のんびりしました。",q:"何時に着きましたか。",opts:["8時","5時","9時","7時"],a:2},
 {t:"練習",body:"私は友達に公園で会いました。とても楽しかったです。 学校の話をしました。 一緒に歩きました。 とても楽しかったです。",q:"誰に会いましたか。",opts:["弟","友達","父","妹"],a:1},
 ];
+
+/* ============ 新增：听力填空 + 同义替换（2026-09-11） ============ */
+const SYN_EN=[
+{w:"important",s:"significant",d:["ordinary","tiny","wrong"],ex:"an important decision"},
+{w:"happy",s:"glad",d:["angry","sad","tired"],ex:"she was happy to hear"},
+{w:"big",s:"large",d:["small","tiny","thin"],ex:"a big house"},
+{w:"small",s:"little",d:["huge","giant","tall"],ex:"a small dog"},
+{w:"fast",s:"quick",d:["slow","lazy","calm"],ex:"a fast car"},
+{w:"slow",s:"gradual",d:["rapid","sudden","loud"],ex:"a slow change"},
+{w:"difficult",s:"hard",d:["easy","simple","clear"],ex:"a difficult problem"},
+{w:"easy",s:"simple",d:["hard","complex","rare"],ex:"an easy task"},
+{w:"cheap",s:"inexpensive",d:["expensive","costly","rich"],ex:"a cheap meal"},
+{w:"expensive",s:"costly",d:["cheap","free","poor"],ex:"an expensive watch"},
+{w:"good",s:"fine",d:["bad","evil","wrong"],ex:"good weather"},
+{w:"bad",s:"poor",d:["good","fine","great"],ex:"bad service"},
+{w:"new",s:"recent",d:["old","ancient","used"],ex:"a new plan"},
+{w:"old",s:"ancient",d:["new","modern","young"],ex:"an old building"},
+{w:"help",s:"assist",d:["hinder","block","ignore"],ex:"please help me"},
+{w:"use",s:"utilise",d:["waste","lose","hide"],ex:"use the tool"},
+{w:"show",s:"demonstrate",d:["hide","conceal","deny"],ex:"show the result"},
+{w:"buy",s:"purchase",d:["sell","rent","lend"],ex:"buy a ticket"},
+{w:"sell",s:"trade",d:["buy","keep","hold"],ex:"sell the car"},
+{w:"make",s:"produce",d:["destroy","break","lose"],ex:"make a cake"},
+{w:"build",s:"construct",d:["demolish","ruin","drop"],ex:"build a bridge"},
+{w:"fix",s:"repair",d:["break","damage","ruin"],ex:"fix the bike"},
+{w:"clean",s:"tidy",d:["dirty","mess","stain"],ex:"clean the room"},
+{w:"find",s:"discover",d:["lose","miss","hide"],ex:"find the answer"},
+{w:"lose",s:"misplace",d:["find","gain","win"],ex:"lose the key"},
+{w:"think",s:"believe",d:["doubt","deny","ignore"],ex:"I think so"},
+{w:"know",s:"understand",d:["forget","ignore","guess"],ex:"I know it"},
+{w:"learn",s:"study",d:["teach","forget","skip"],ex:"learn a language"},
+{w:"teach",s:"instruct",d:["learn","confuse","hide"],ex:"teach the class"},
+{w:"explain",s:"describe",d:["confuse","hide","silence"],ex:"explain the rule"},
+{w:"start",s:"begin",d:["end","stop","finish"],ex:"start the work"},
+{w:"stop",s:"cease",d:["start","begin","continue"],ex:"stop the noise"},
+{w:"finish",s:"complete",d:["start","begin","delay"],ex:"finish the job"},
+{w:"change",s:"alter",d:["keep","freeze","hold"],ex:"change the plan"},
+{w:"keep",s:"retain",d:["lose","drop","sell"],ex:"keep the receipt"},
+{w:"move",s:"shift",d:["stay","freeze","settle"],ex:"move the desk"},
+{w:"give",s:"provide",d:["take","steal","refuse"],ex:"give support"},
+{w:"take",s:"grab",d:["give","offer","return"],ex:"take the bag"},
+{w:"need",s:"require",d:["want","reject","deny"],ex:"need help"},
+{w:"want",s:"desire",d:["hate","refuse","reject"],ex:"want water"},
+{w:"like",s:"enjoy",d:["hate","loathe","dread"],ex:"like music"},
+{w:"hate",s:"dislike",d:["love","adore","like"],ex:"hate waiting"},
+{w:"fear",s:"dread",d:["hope","wish","love"],ex:"fear failure"},
+{w:"try",s:"attempt",d:["quit","avoid","refuse"],ex:"try again"},
+{w:"improve",s:"enhance",d:["worsen","ruin","drop"],ex:"improve skills"},
+{w:"worsen",s:"deteriorate",d:["improve","heal","fix"],ex:"worsen the situation"},
+{w:"increase",s:"rise",d:["decrease","fall","drop"],ex:"increase the price"},
+{w:"decrease",s:"decline",d:["increase","rise","grow"],ex:"decrease the cost"},
+{w:"reduce",s:"cut",d:["raise","grow","expand"],ex:"reduce waste"},
+{w:"grow",s:"expand",d:["shrink","fall","drop"],ex:"grow the business"},
+{w:"rich",s:"wealthy",d:["poor","broke","needy"],ex:"a rich family"},
+{w:"poor",s:"needy",d:["rich","wealthy","full"],ex:"a poor village"},
+{w:"safe",s:"secure",d:["dangerous","risky","unsafe"],ex:"a safe place"},
+{w:"dangerous",s:"risky",d:["safe","calm","quiet"],ex:"a dangerous road"},
+{w:"quiet",s:"silent",d:["loud","noisy","busy"],ex:"a quiet room"},
+{w:"noisy",s:"loud",d:["quiet","calm","still"],ex:"a noisy street"},
+{w:"clear",s:"obvious",d:["vague","unclear","hidden"],ex:"a clear answer"},
+{w:"vague",s:"unclear",d:["clear","sharp","exact"],ex:"a vague memory"},
+{w:"true",s:"accurate",d:["false","wrong","fake"],ex:"a true story"},
+{w:"false",s:"incorrect",d:["true","right","real"],ex:"a false claim"},
+{w:"right",s:"correct",d:["wrong","false","bad"],ex:"the right answer"},
+{w:"wrong",s:"incorrect",d:["right","correct","true"],ex:"a wrong turn"},
+{w:"strong",s:"powerful",d:["weak","frail","soft"],ex:"a strong team"},
+{w:"weak",s:"feeble",d:["strong","tough","solid"],ex:"a weak signal"},
+{w:"heavy",s:"weighty",d:["light","tiny","thin"],ex:"a heavy box"},
+{w:"light",s:"lightweight",d:["heavy","dense","thick"],ex:"a light bag"},
+{w:"hot",s:"warm",d:["cold","freezing","cool"],ex:"hot weather"},
+{w:"cold",s:"chilly",d:["hot","warm","boiling"],ex:"cold water"},
+{w:"full",s:"packed",d:["empty","blank","bare"],ex:"a full train"},
+{w:"empty",s:"vacant",d:["full","packed","loaded"],ex:"an empty seat"},
+{w:"open",s:"unlocked",d:["closed","shut","sealed"],ex:"an open door"},
+{w:"closed",s:"shut",d:["open","wide","free"],ex:"a closed shop"},
+{w:"high",s:"tall",d:["low","short","flat"],ex:"a high wall"},
+{w:"low",s:"short",d:["high","tall","steep"],ex:"a low price"},
+{w:"near",s:"close",d:["far","distant","remote"],ex:"near the station"},
+{w:"far",s:"distant",d:["near","close","adjacent"],ex:"far away"},
+{w:"early",s:"soon",d:["late","delayed","overdue"],ex:"an early start"},
+{w:"late",s:"delayed",d:["early","prompt","quick"],ex:"a late arrival"},
+{w:"common",s:"frequent",d:["rare","unusual","odd"],ex:"a common mistake"},
+{w:"rare",s:"unusual",d:["common","usual","normal"],ex:"a rare bird"},
+{w:"normal",s:"typical",d:["odd","weird","strange"],ex:"normal behaviour"},
+{w:"strange",s:"odd",d:["normal","usual","plain"],ex:"a strange noise"},
+{w:"simple",s:"basic",d:["complex","fancy","elaborate"],ex:"a simple idea"},
+{w:"complex",s:"complicated",d:["simple","plain","easy"],ex:"a complex system"},
+{w:"modern",s:"contemporary",d:["ancient","old","dated"],ex:"modern art"},
+{w:"old-fashioned",s:"outdated",d:["modern","new","fresh"],ex:"old-fashioned views"},
+{w:"beautiful",s:"attractive",d:["ugly","plain","hideous"],ex:"a beautiful view"},
+{w:"ugly",s:"unattractive",d:["beautiful","pretty","lovely"],ex:"an ugly building"},
+{w:"healthy",s:"fit",d:["sick","ill","weak"],ex:"a healthy diet"},
+{w:"sick",s:"ill",d:["healthy","fit","well"],ex:"feel sick"},
+{w:"smart",s:"clever",d:["dumb","foolish","slow"],ex:"a smart student"},
+{w:"stupid",s:"foolish",d:["smart","bright","wise"],ex:"a stupid mistake"},
+{w:"careful",s:"cautious",d:["careless","reckless","rude"],ex:"be careful"},
+{w:"careless",s:"reckless",d:["careful","cautious","safe"],ex:"a careless error"},
+{w:"busy",s:"occupied",d:["free","idle","lazy"],ex:"a busy day"},
+{w:"free",s:"available",d:["busy","occupied","full"],ex:"are you free"},
+{w:"tired",s:"exhausted",d:["fresh","rested","energetic"],ex:"feel tired"},
+{w:"content",s:"satisfied",d:["sad","gloomy","angry"],ex:"content with life"},
+{w:"angry",s:"furious",d:["calm","happy","pleased"],ex:"an angry crowd"},
+{w:"calm",s:"peaceful",d:["angry","tense","wild"],ex:"stay calm"},
+{w:"sure",s:"certain",d:["unsure","doubtful","vague"],ex:"I am sure"},
+{w:"possible",s:"feasible",d:["impossible","unlikely","rare"],ex:"it is possible"},
+{w:"impossible",s:"unlikely",d:["possible","certain","sure"],ex:"nearly impossible"},
+{w:"crucial",s:"vital",d:["minor","trivial","tiny"],ex:"a crucial point"},
+{w:"different",s:"distinct",d:["same","identical","alike"],ex:"a different view"},
+{w:"same",s:"identical",d:["different","unlike","varied"],ex:"the same idea"},
+{w:"main",s:"primary",d:["minor","side","extra"],ex:"the main reason"},
+{w:"extra",s:"additional",d:["fewer","less","missing"],ex:"extra time"},
+{w:"limit",s:"restrict",d:["expand","grow","free"],ex:"limit the speed"},
+{w:"allow",s:"permit",d:["ban","forbid","block"],ex:"allow entry"},
+{w:"ban",s:"forbid",d:["allow","permit","approve"],ex:"ban smoking"},
+{w:"cause",s:"trigger",d:["prevent","stop","cure"],ex:"cause a problem"},
+{w:"prevent",s:"avoid",d:["cause","trigger","force"],ex:"prevent illness"},
+{w:"solve",s:"resolve",d:["create","worsen","confuse"],ex:"solve the puzzle"},
+{w:"rapid",s:"swift",d:["slow","gradual","calm"],ex:"rapid growth"},
+{w:"steady",s:"stable",d:["shaky","unstable","wild"],ex:"a steady hand"},
+{w:"tiny",s:"minuscule",d:["huge","giant","vast"],ex:"a tiny bug"},
+{w:"huge",s:"massive",d:["tiny","small","little"],ex:"a huge building"},
+{w:"rough",s:"harsh",d:["smooth","soft","calm"],ex:"a rough surface"},
+{w:"smooth",s:"even",d:["rough","jagged","coarse"],ex:"a smooth road"},
+{w:"sharp",s:"keen",d:["dull","blunt","soft"],ex:"a sharp knife"},
+{w:"dull",s:"blunt",d:["sharp","keen","bright"],ex:"a dull edge"},
+{w:"bright",s:"vivid",d:["dim","dark","dull"],ex:"bright colours"},
+{w:"dim",s:"faint",d:["bright","vivid","clear"],ex:"a dim light"}
+];
+const SYN_JA=[
+{w:"大きい",s:"巨大な",d:["小さい","新しい","古い"],ex:"大きい家"},
+{w:"小さい",s:"小さな",d:["大きい","長い","高い"],ex:"小さい犬"},
+{w:"速い",s:"迅速な",d:["遅い","静かな","古い"],ex:"速い車"},
+{w:"遅い",s:"緩やかな",d:["速い","新しい","明るい"],ex:"遅い変化"},
+{w:"難しい",s:"困難な",d:["易しい","簡単な","明るい"],ex:"難しい問題"},
+{w:"易しい",s:"簡単な",d:["難しい","複雑な","珍しい"],ex:"易しい課題"},
+{w:"新しい",s:"新たな",d:["古い","大きい","小さい"],ex:"新しい計画"},
+{w:"古い",s:"古めかしい",d:["新しい","大きい","明るい"],ex:"古い建物"},
+{w:"助ける",s:"支援する",d:["妨げる","無視する","忘れる"],ex:"手伝って"},
+{w:"使う",s:"用いる",d:["捨てる","失う","隠す"],ex:"道具を使う"},
+{w:"見せる",s:"示す",d:["隠す","覆う","否定する"],ex:"結果を見せる"},
+{w:"買う",s:"購入する",d:["売る","借りる","貸す"],ex:"切符を買う"},
+{w:"売る",s:"販売する",d:["買う","持つ","守る"],ex:"車を売る"},
+{w:"作る",s:"作成する",d:["壊す","破る","失う"],ex:"ケーキを作る"},
+{w:"建てる",s:"構築する",d:["壊す","崩す","落とす"],ex:"橋を建てる"},
+{w:"直す",s:"修理する",d:["壊す","損なう","汚す"],ex:"自転車を直す"},
+{w:"綺麗",s:"清潔な",d:["汚い","乱れた","染みだらけ"],ex:"部屋を綺麗に"},
+{w:"見つける",s:"発見する",d:["失う","見逃す","隠す"],ex:"答えを見つける"},
+{w:"失う",s:"無くす",d:["見つける","得る","勝つ"],ex:"鍵を失う"},
+{w:"考える",s:"思う",d:["疑う","否定する","無視する"],ex:"そう思う"},
+{w:"知る",s:"理解する",d:["忘れる","無視する","当てずっぽう"],ex:"それを知る"},
+{w:"学ぶ",s:"勉強する",d:["教える","忘れる","飛ばす"],ex:"言語を学ぶ"},
+{w:"教える",s:"指導する",d:["学ぶ","混乱させる","隠す"],ex:"クラスを教える"},
+{w:"始める",s:"開始する",d:["終える","止める","完成する"],ex:"仕事を始める"},
+{w:"止める",s:"中止する",d:["始める","続ける","進める"],ex:"音を止める"},
+{w:"終える",s:"完成する",d:["始める","遅らせる","延期する"],ex:"仕事を終える"},
+{w:"変える",s:"変更する",d:["保つ","凍らせる","留める"],ex:"計画を変える"},
+{w:"増える",s:"上がる",d:["減る","落ちる","下がる"],ex:"価格が増える"},
+{w:"減る",s:"減少する",d:["増える","上がる","育つ"],ex:"コストが減る"},
+{w:"豊か",s:"裕福な",d:["貧しい","困った","必要な"],ex:"豊かな家族"},
+{w:"貧しい",s:"困窮した",d:["豊か","裕福","満たされた"],ex:"貧しい村"},
+{w:"静か",s:"静寂な",d:["うるさい","賑やか","忙しい"],ex:"静かな部屋"},
+{w:"うるさい",s:"騒がしい",d:["静か","穏やか","落ち着いた"],ex:"うるさい通り"},
+{w:"安全",s:"安心な",d:["危険","リスク","不安"],ex:"安全な場所"},
+{w:"危険",s:"リスクな",d:["安全","穏やか","静か"],ex:"危険な道"},
+{w:"明らか",s:"明白な",d:["曖昧","不鮮明","隠された"],ex:"明らかな答え"},
+{w:"曖昧",s:"不鮮明な",d:["明らか","鋭い","正確"],ex:"曖昧な記憶"},
+{w:"本当",s:"正確な",d:["偽","間違い","偽物"],ex:"本当の話"},
+{w:"偽",s:"間違った",d:["本当","正しい","実"],ex:"偽の主張"},
+{w:"強い",s:"力強い",d:["弱い","ひ弱","柔らか"],ex:"強いチーム"},
+{w:"弱い",s:"ひ弱な",d:["強い","頑丈","固い"],ex:"弱い信号"},
+{w:"近い",s:"近隣の",d:["遠い","離れた","辺鄙"],ex:"駅の近い"},
+{w:"遠い",s:"離れた",d:["近い","隣接","密接"],ex:"遠く離れて"},
+{w:"普通",s:"典型的な",d:["奇妙","変","珍しい"],ex:"普通の行動"},
+{w:"変",s:"奇妙な",d:["普通","通常","単純"],ex:"変な音"}
+];
+let SYN=null, synCur=null, dictCur=null, dictBlank=null;
+
+/* ============ 听力填空 / 听写 ============ */
+const DICT_STOP=new Set(["the","a","an","and","or","but","that","this","these","those","with","from","they","were","have","has","had","will","would","should","could","been","are","is","was","for","not","what","when","which","there","here","very","more","most","some","many","much","than","then","into","over","after","before","about","also","each","such","just","like","your","our","their","you","we","he","she","it","to","of","in","on","at","by","as","so","if","out","up","down","off","my","me","us","them","his","her"]);
+function dictateNew(){
+  let tries=0; dictCur=null; dictBlank=null;
+  while(tries++<40){
+    const c=SENTENCES[Math.floor(Math.random()*SENTENCES.length)][0];
+    const words=c.split(/\s+/); const cands=[];
+    for(let i=1;i<words.length;i++){
+      const w=words[i].replace(/[^A-Za-z']/g,'');
+      if(w.length>=4 && /^[A-Za-z]+$/.test(w) && !DICT_STOP.has(w.toLowerCase())) cands.push({i,w});
+    }
+    if(cands.length){ dictCur=c; dictBlank=cands[Math.floor(Math.random()*cands.length)]; break; }
+  }
+  if(!dictCur){ dictateNew(); return; }
+  const words=dictCur.split(/\s+/);
+  const hint=dictBlank.w[0]+'_'.repeat(Math.max(3,dictBlank.w.length-1));
+  const shown=words.map((w,i)=> i===dictBlank.i ? '<span class="bl">'+hint+'</span>' : escapeHtml(w)).join(' ');
+  document.getElementById('dictSent').innerHTML=shown;
+  document.getElementById('dictIn').value='';
+  document.getElementById('dictFb').innerHTML='';
+  speak(dictCur);
+}
+function dictateCheck(){
+  if(!dictCur||!dictBlank) return;
+  const v=document.getElementById('dictIn').value.trim().toLowerCase().replace(/[^a-z']/g,'');
+  const ans=dictBlank.w.toLowerCase().replace(/[^a-z']/g,'');
+  const fb=document.getElementById('dictFb');
+  if(!v){ fb.innerHTML='先写点什么～'; return; }
+  const s=S(); s.today.quiz++; s.today.listen=(s.today.listen||0)+1;
+  if(v===ans){ addXP(2); sfx('ok'); errOk(dictCur);
+    fb.innerHTML='✅ 正确！<div class="ex">'+escapeHtml(dictCur)+'</div>';
+  } else { sfx('no'); errAdd(dictCur, dictCur);
+    fb.innerHTML='❌ 答案是 <b>'+escapeHtml(dictBlank.w)+'</b><div class="ex">'+escapeHtml(dictCur)+'</div>';
+  }
+  save(); refreshTop(); renderErrCount();
+  const b=document.createElement('button'); b.className='btn nextBtn'; b.textContent='换一句 ▶'; b.onclick=dictateNew; fb.appendChild(b);
+}
+window.dictateNew=dictateNew; window.dictateCheck=dictateCheck;
+
+/* ============ 同义替换训练 ============ */
+function synNew(){
+  const box=document.getElementById('synWrap');
+  if(!SYN || !SYN.length){ if(box) box.innerHTML='<p class="desc">当前语言暂无同义替换题库。</p>'; return; }
+  synCur=SYN[Math.floor(Math.random()*SYN.length)];
+  const opts=shuffle([synCur.s].concat(synCur.d||[]));
+  document.getElementById('synWord').textContent=synCur.w;
+  document.getElementById('synEx').textContent='例句：'+synCur.ex;
+  document.getElementById('synOpts').innerHTML=opts.map(o=>'<div class="opt" data-o="'+escapeHtml(o)+'" onclick="synAnswer(this,this.dataset.o)">'+escapeHtml(o)+'</div>').join('');
+  document.getElementById('synFb').innerHTML='';
+}
+function synAnswer(el,ch){
+  if(!synCur) return;
+  const right=synCur.s; const s=S();
+  document.querySelectorAll('#synOpts .opt').forEach(o=>o.style.pointerEvents='none');
+  s.today.quiz++;
+  if(ch===right){ el.classList.add('correct'); addXP(1); sfx('ok');
+    document.getElementById('synFb').innerHTML='✅ 正确！<div class="ex">'+escapeHtml(synCur.w)+' ≈ '+escapeHtml(right)+'</div>';
+  } else { el.classList.add('wrong'); sfx('no');
+    document.querySelectorAll('#synOpts .opt').forEach(o=>{ if(o.textContent===right) o.classList.add('correct'); });
+    document.getElementById('synFb').innerHTML='❌ 正确：<b>'+escapeHtml(right)+'</b><div class="ex">'+escapeHtml(synCur.w)+' ≈ '+escapeHtml(right)+'</div>';
+  }
+  save(); refreshTop(); renderErrCount();
+  const fb=document.getElementById('synFb'); const b=document.createElement('button'); b.className='btn nextBtn'; b.textContent='下一题 ▶'; b.onclick=synNew; fb.appendChild(b);
+}
+window.synNew=synNew; window.synAnswer=synAnswer;
+
 function applyLang(l){
   CUR_LANG=l;
   STORE_KEY="english_planet_v1"+LANG().store;
@@ -26935,6 +27210,7 @@ function applyLang(l){
   SHADOWS  = l==="ja"?SHADOWS_JA:SHADOWS_EN;
   READINGS = (l==="ja"?READINGS_JA:READINGS_EN).concat(l==="ja"?READINGS_EXTRA_JA:READINGS_EXTRA_EN);
   GRAMMAR  = l==="ja"?GRAMMAR_JA:GRAMMAR_EN;
+  SYN      = l==="ja"?SYN_JA:SYN_EN;
   LETTERS  = l==="ja"?LETTERS_JA:LETTERS_EN;
   PHONES   = l==="ja"?PHONES_JA:PHONES_EN;
   TOTAL_W  = WORDS.length;
@@ -26985,7 +27261,6 @@ init();
 </script>
 
 <script>
-/* PWA：离线缓存 + 新版自动提示（仅 https 生效） */
 if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
   window.addEventListener('load', function(){
     navigator.serviceWorker.register('sw.js').then(function(reg){
@@ -26996,10 +27271,8 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
         nw.addEventListener('statechange', function(){
           if(nw.state === 'installed' && navigator.serviceWorker.controller){
             var d = document.createElement('div');
-            d.textContent = '\u53d1\u73b0\u65b0\u7248\u672c\uff0c\u70b9\u8fd9\u91cc\u66f4\u65b0';
-            d.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:20px;z-index:99999;'+
-              'background:#5b6cf0;color:#fff;padding:11px 20px;border-radius:999px;font-size:13.5px;'+
-              'font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.35);cursor:pointer';
+            d.textContent = '发现新版本，点这里更新';
+            d.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:20px;z-index:99999;background:#5b6cf0;color:#fff;padding:11px 20px;border-radius:999px;font-size:13.5px;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.35);cursor:pointer';
             d.onclick = function(){ nw.postMessage('SKIP_WAITING'); setTimeout(function(){ location.reload(); }, 200); };
             document.body.appendChild(d);
           }
