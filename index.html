@@ -252,6 +252,14 @@ th{color:var(--sub);font-weight:600;font-size:12px}
 .bl{display:inline-block;border-bottom:2px solid var(--pri);min-width:60px;text-align:center;color:var(--pri);font-weight:700;padding:0 4px}
 #dictSent{font-size:19px;line-height:1.7;margin:14px 0}
 #synWord{font-size:30px;font-weight:800;color:var(--pri)}
+
+#scBank,#scAns{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+#scAns{min-height:46px;padding:8px;border:2px dashed var(--ring);border-radius:12px;align-content:flex-start}
+#scAns .chip.on{cursor:pointer}
+.lzTop{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.lzTime{font-size:30px;font-weight:800;color:var(--pri);font-variant-numeric:tabular-nums}
+.lzScore{font-size:18px;font-weight:700}
+#lzWord{font-size:30px;font-weight:800}
 </style>
 </head>
 <body data-page-node-id="AzafKYxoeyF40zdhGLT9G9">
@@ -377,6 +385,35 @@ th{color:var(--sub);font-weight:600;font-size:12px}
       <hr class="sp">
       <div id="achievements"></div>
     </div>
+
+    <div class="card" id="c-chain">
+      <div class="ch"><span class="ci">🔗</span><h2>单词接龙</h2></div>
+      <p class="desc">上一个词的最后一个字母，必须是你这个词的首字母。词库里有的词都算数，接得越长越爽。</p>
+      <div class="big-sentence" id="chainCur">—</div>
+      <p class="muted" id="chainLen">连击 0</p>
+      <div class="keyrow">
+        <input class="typing" id="chainIn" placeholder="输入接龙的单词" onkeydown="if(event.key==='Enter')chainSubmit()" style="flex:1">
+        <button class="btn" onclick="chainSubmit()">接！</button>
+        <button class="round-btn" onclick="chainNew()" title="重开">🔄</button>
+      </div>
+      <div class="feedback" id="chainFb"></div>
+    </div>
+
+    <div class="card" id="c-lz">
+      <div class="ch"><span class="ci">⚡</span><h2>闪电挑战</h2></div>
+      <p class="desc">30 秒，看英文选中文，越快越准分越高。纯手速 + 词汇量。</p>
+      <div class="lzTop">
+        <div class="lzTime" id="lzTime">30</div>
+        <div class="lzScore">得分 <b id="lzScore">0</b></div>
+      </div>
+      <div class="big-sentence" id="lzWord">点开始</div>
+      <p class="muted" id="lzPh"></p>
+      <div class="opts" id="lzOpts"></div>
+      <div class="feedback" id="lzOver"></div>
+      <div class="keyrow" style="justify-content:center">
+        <button class="btn" onclick="lzStart()">▶ 开始 30 秒</button>
+      </div>
+    </div>
   </section>
 
   <!-- ==================== 听说 ==================== -->
@@ -457,6 +494,17 @@ th{color:var(--sub);font-weight:600;font-size:12px}
       </div>
       <div class="keyrow" style="justify-content:center">
         <button class="btn ghost" onclick="synNew()">换一题</button>
+      </div>
+    </div>
+
+    <div class="card" id="c-scramble">
+      <div class="ch"><span class="ci">🧩</span><h2>连词成句</h2></div>
+      <p class="desc">点下面的单词，按正确顺序拼出原句。练的是语感和词序，比单背单词有用。</p>
+      <div id="scBank"></div>
+      <div id="scAns"></div>
+      <div class="feedback" id="scFb"></div>
+      <div class="keyrow" style="justify-content:center">
+        <button class="btn ghost" onclick="scNew()">换一句</button>
       </div>
     </div>
 
@@ -25520,9 +25568,10 @@ function showPanel(g){
   document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on",x.dataset.g===g));
   document.querySelectorAll(".panel").forEach(x=>x.classList.remove("on"));
   const p=document.getElementById("p-"+g); if(p) p.classList.add("on");
-  if(g==="word"){ renderMap(); renderErr(); }
+  if(g!=="word" && lzTimer){ clearInterval(lzTimer); lzTimer=null; lzActive=false; }
+  if(g==="word"){ renderMap(); renderErr(); if(!chainCur) chainNew(); }
   if(g==="goal") renderIelts();
-  if(g==="read"){ renderReading(); if(!synCur) synNew(); }
+  if(g==="read"){ renderReading(); if(!synCur) synNew(); if(!scSent) scNew(); }
   if(g==="listen" && !dictCur) dictateNew();
   window.scrollTo({top:0,behavior:"smooth"});
 }
@@ -27140,18 +27189,18 @@ let SYN=null, synCur=null, dictCur=null, dictBlank=null;
 const DICT_STOP=new Set(["the","a","an","and","or","but","that","this","these","those","with","from","they","were","have","has","had","will","would","should","could","been","are","is","was","for","not","what","when","which","there","here","very","more","most","some","many","much","than","then","into","over","after","before","about","also","each","such","just","like","your","our","their","you","we","he","she","it","to","of","in","on","at","by","as","so","if","out","up","down","off","my","me","us","them","his","her"]);
 function dictateNew(){
   let tries=0; dictCur=null; dictBlank=null;
-  while(tries++<40){
+  while(tries++<60){
     const c=SENTENCES[Math.floor(Math.random()*SENTENCES.length)][0];
     const words=c.split(/\s+/); const cands=[];
     for(let i=1;i<words.length;i++){
-      const w=words[i].replace(/[^A-Za-z']/g,'');
-      if(w.length>=4 && /^[A-Za-z]+$/.test(w) && !DICT_STOP.has(w.toLowerCase())) cands.push({i,w});
+      const lw=letters(words[i]);                 // 语言无关：只留字母（含日汉/假名）
+      if(lw.length>=2 && !DICT_STOP.has(lw)) cands.push({i,w:lw});
     }
     if(cands.length){ dictCur=c; dictBlank=cands[Math.floor(Math.random()*cands.length)]; break; }
   }
-  if(!dictCur){ dictateNew(); return; }
+  if(!dictCur){ const c=SENTENCES[0][0]; const ws=c.split(/\s+/); const lw=letters(ws[ws.length-1]); dictCur=c; dictBlank={i:ws.length-1,w:lw||ws[ws.length-1]}; }
   const words=dictCur.split(/\s+/);
-  const hint=dictBlank.w[0]+'_'.repeat(Math.max(3,dictBlank.w.length-1));
+  const hint=dictBlank.w[0]+'_'.repeat(Math.max(2,dictBlank.w.length-1));
   const shown=words.map((w,i)=> i===dictBlank.i ? '<span class="bl">'+hint+'</span>' : escapeHtml(w)).join(' ');
   document.getElementById('dictSent').innerHTML=shown;
   document.getElementById('dictIn').value='';
@@ -27202,6 +27251,123 @@ function synAnswer(el,ch){
 }
 window.synNew=synNew; window.synAnswer=synAnswer;
 
+
+
+/* ============ 新增：单词接龙 / 连词成句 / 闪电挑战（2026-09-11） ============ */
+let WORDSET=null, chainCur='', chainUsed=[];
+let scSent=null, scAns=[], scBank=[];
+let lzTimer=null, lzScore=0, lzLeft=0, lzQ=null, lzActive=false;
+function letters(w){ return String(w).toLowerCase().replace(/[^\p{L}]/gu,''); }
+
+/* ---- 单词接龙 ---- */
+function chainNew(){
+  chainUsed=[];
+  const w=WORDS[Math.floor(Math.random()*WORDS.length)].w;
+  chainCur=w; chainUsed.push(letters(w));
+  document.getElementById('chainCur').textContent=w;
+  document.getElementById('chainIn').value='';
+  document.getElementById('chainFb').innerHTML='';
+  document.getElementById('chainLen').textContent='连击 0';
+  speak(w);
+}
+function chainSubmit(){
+  const v=letters(document.getElementById('chainIn').value);
+  const fb=document.getElementById('chainFb');
+  if(!v){ fb.textContent='先输入一个词～'; return; }
+  const need=letters(chainCur).slice(-1);
+  if(!WORDSET.has(v)){ fb.innerHTML='❌ 词库里没找到「'+escapeHtml(v)+'」。换个词试试。'; sfx('no'); return; }
+  if(chainUsed.includes(v)){ fb.innerHTML='❌ 「'+escapeHtml(v)+'」已经用过啦。'; sfx('no'); return; }
+  if(v[0]!==need){ fb.innerHTML='❌ 要接「'+need.toUpperCase()+'」开头的词，你是「'+escapeHtml(v)+'」'; sfx('no'); return; }
+  chainUsed.push(v); chainCur=v;
+  const s=S(); s.today.quiz=(s.today.quiz||0)+1; addXP(2); sfx('ok');
+  document.getElementById('chainCur').textContent=v;
+  document.getElementById('chainIn').value='';
+  document.getElementById('chainLen').textContent='连击 '+(chainUsed.length-1);
+  fb.innerHTML='✅ 漂亮！下一个接「'+v.slice(-1).toUpperCase()+'」';
+  save(); refreshTop();
+  speak(v);
+  const b=document.createElement('button'); b.className='btn nextBtn'; b.textContent='继续 ▶'; b.onclick=()=>document.getElementById('chainIn').focus(); fb.appendChild(b);
+}
+window.chainNew=chainNew; window.chainSubmit=chainSubmit;
+
+/* ---- 连词成句 ---- */
+function scNew(){
+  let c=null;
+  for(let t=0;t<30;t++){
+    const s=SENTENCES[Math.floor(Math.random()*SENTENCES.length)][0];
+    const n=s.split(/\s+/).length;
+    if(n>=5 && n<=11){ c=s; break; }
+  }
+  if(!c) c=SENTENCES[0][0];
+  scSent=c; scAns=[];
+  const toks=c.split(/\s+/);
+  let sh; do { sh=shuffle(toks.slice()); } while(sh.join(' ')===toks.join(' ') && toks.length>1);
+  scBank=sh.map((t,i)=>({t,i}));
+  renderSc();
+  document.getElementById('scFb').innerHTML='<span class="muted">点下面单词，按顺序排成原句</span>';
+}
+function scPick(i){
+  const idx=scBank.findIndex(x=>x.i===i); if(idx<0) return;
+  const o=scBank.splice(idx,1)[0]; scAns.push(o); renderSc();
+  if(scBank.length===0) scCheck();
+}
+function scBack(){ if(!scAns.length) return; scBank.push(scAns.pop()); renderSc(); }
+function renderSc(){
+  document.getElementById('scBank').innerHTML=scBank.map(o=>'<button class="chip" onclick="scPick('+o.i+')">'+escapeHtml(o.t)+'</button>').join('');
+  document.getElementById('scAns').innerHTML=scAns.map(o=>'<button class="chip on" onclick="scBack()">'+escapeHtml(o.t)+'</button>').join('');
+}
+function scCheck(){
+  const norm=x=>x.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu,' ').replace(/\s+/g,' ').trim();
+  const ans=norm(scAns.map(o=>o.t).join(' '));
+  const orig=norm(scSent);
+  const fb=document.getElementById('scFb');
+  const s=S(); s.today.quiz=(s.today.quiz||0)+1;
+  if(ans===orig){ addXP(3); sfx('ok'); errOk(scSent);
+    fb.innerHTML='✅ 正确！<div class="ex">'+escapeHtml(scSent)+'</div>';
+  } else { sfx('no'); errAdd(scSent, scSent);
+    fb.innerHTML='❌ 正确答案：<div class="ex">'+escapeHtml(scSent)+'</div>'; }
+  save(); refreshTop(); renderErrCount();
+  const b=document.createElement('button'); b.className='btn nextBtn'; b.textContent='换一句 ▶'; b.onclick=scNew; fb.appendChild(b);
+}
+window.scNew=scNew; window.scPick=scPick; window.scBack=scBack;
+
+/* ---- 闪电挑战 ---- */
+function lzStart(){
+  if(lzTimer) clearInterval(lzTimer);
+  lzScore=0; lzLeft=30; lzActive=true;
+  document.getElementById('lzScore').textContent='0';
+  document.getElementById('lzTime').textContent='30';
+  document.getElementById('lzOver').innerHTML='';
+  lzNext();
+  lzTimer=setInterval(()=>{ lzLeft--; document.getElementById('lzTime').textContent=lzLeft; if(lzLeft<=0) lzEnd(); },1000);
+}
+function lzNext(){
+  const w=WORDS[Math.floor(Math.random()*WORDS.length)];
+  const seen=new Set([w.zh]); const others=[];
+  let g=0; while(others.length<3 && g++<400){ const c=WORDS[Math.floor(Math.random()*WORDS.length)].zh; if(c && !seen.has(c)){ seen.add(c); others.push(c); } }
+  const opts=shuffle([w.zh].concat(others));
+  lzQ=w;
+  document.getElementById('lzWord').textContent=w.w;
+  document.getElementById('lzPh').textContent=w.ph||'';
+  document.getElementById('lzOpts').innerHTML=opts.map(o=>'<div class="opt" data-o="'+escapeHtml(o)+'" onclick="lzAnswer(this,this.dataset.o)">'+escapeHtml(o)+'</div>').join('');
+}
+function lzAnswer(el,ch){
+  if(!lzActive) return;
+  const right=lzQ.zh; const s=S(); s.today.quiz=(s.today.quiz||0)+1;
+  document.querySelectorAll('#lzOpts .opt').forEach(o=>o.style.pointerEvents='none');
+  if(ch===right){ lzScore+=10; document.getElementById('lzScore').textContent=lzScore; el.classList.add('correct'); sfx('ok'); speak(lzQ.w); }
+  else { el.classList.add('wrong'); sfx('no');
+    document.querySelectorAll('#lzOpts .opt').forEach(o=>{ if(o.textContent===right) o.classList.add('correct'); }); }
+  save(); refreshTop();
+  setTimeout(()=>{ if(lzActive) lzNext(); }, 500);
+}
+function lzEnd(){
+  lzActive=false; if(lzTimer){ clearInterval(lzTimer); lzTimer=null; }
+  document.getElementById('lzOpts').innerHTML='';
+  document.getElementById('lzOver').innerHTML='⏱️ 时间到！本局得分 <b>'+lzScore+'</b> <button class="btn" onclick="lzStart()">再来一局 ▶</button>';
+}
+window.lzStart=lzStart; window.lzAnswer=lzAnswer;
+
 function applyLang(l){
   CUR_LANG=l;
   STORE_KEY="english_planet_v1"+LANG().store;
@@ -27211,6 +27377,7 @@ function applyLang(l){
   READINGS = (l==="ja"?READINGS_JA:READINGS_EN).concat(l==="ja"?READINGS_EXTRA_JA:READINGS_EXTRA_EN);
   GRAMMAR  = l==="ja"?GRAMMAR_JA:GRAMMAR_EN;
   SYN      = l==="ja"?SYN_JA:SYN_EN;
+  WORDSET  = new Set(WORDS.map(w=>String(w.w).toLowerCase()));
   LETTERS  = l==="ja"?LETTERS_JA:LETTERS_EN;
   PHONES   = l==="ja"?PHONES_JA:PHONES_EN;
   TOTAL_W  = WORDS.length;
