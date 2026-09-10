@@ -20465,7 +20465,7 @@ function reveal(r, choiceIdx){
     sfx('ok'); floatScore('+'+ (2+(nb>=4?2:0)+Math.floor(combo/5)), 'var(--warn)');
     if(Math.random()<0.12) dropCard();
     const rate=mk.right+mk.wrong>0?Math.round(mk.right/(mk.right+mk.wrong)*100):100;
-    fb.innerHTML=`✅ 击杀成功！<span class="combo">${combo>=3?'🔥 '+combo+' 连击':''}</span><div class="ex">${w.ph?w.ph+' ':''}${w.zh}${w.ex?('<br>'+w.ex+' —— '+w.zh2):''}</div>${mk.wrong>0?`<div class="ex" style="color:var(--accent)">📕 错题本正确率 ${rate}%</div>`:''}<div class="next-row"><button class="next-btn" onclick="nextQ()">下一个单词 →</button></div>`;
+    fb.innerHTML=`✅ 击杀成功！<span class="combo">${combo>=3?'🔥 '+combo+' 连击':''}</span><div class="ex"><b style="font-size:18px">${w.w}</b> ${w.ph?w.ph+' ':''}${w.zh}${w.ex?('<br>'+w.ex+' —— '+w.zh2):''}</div>${mk.wrong>0?`<div class="ex" style="color:var(--accent)">📕 错题本正确率 ${rate}%</div>`:''}<div class="next-row"><button class="next-btn" onclick="nextQ()">下一个单词 →</button></div>`;
   } else {
     // 答错：加入错误库（错一次即入库）
     mk.wrong=(mk.wrong||0)+1;
