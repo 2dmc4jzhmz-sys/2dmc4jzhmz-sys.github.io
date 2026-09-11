@@ -196,6 +196,12 @@ input::placeholder,textarea::placeholder{color:var(--sub)}
 .rec-btn{border:none;cursor:pointer;padding:10px 18px;border-radius:13px;font-weight:700;font-size:14px;
   background:var(--pri);color:#fff}
 .rec-btn.rec{background:var(--bad)}
+.btn.rec{background:var(--bad) !important;color:#fff;animation:pulse 1s infinite}
+.rd-shadow{background:var(--card2);border-radius:14px;padding:12px 14px;margin:12px 0;border:1px solid var(--separator)}
+.nav-badge{display:inline-block;min-width:17px;height:17px;line-height:17px;margin-left:4px;padding:0 5px;
+  background:var(--bad);color:#fff;border-radius:9px;font-size:11px;font-weight:700;text-align:center;vertical-align:middle}
+.nav-badge:empty{display:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
 .keyrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:9px 0}
 .keyrow input{flex:1;min-width:160px}
 .rate{width:120px}
@@ -298,7 +304,7 @@ th{color:var(--sub);font-weight:600;font-size:12px}
 
   <nav id="nav">
     <button data-g="today" class="on">🏠 今天</button>
-    <button data-g="word">⚔️ 单词</button>
+    <button data-g="word">⚔️ 单词<span id="errNavCount" class="nav-badge"></span></button>
     <button data-g="listen">👂 听说</button>
     <button data-g="read">📖 读写</button>
     <button data-g="start">🎓 起步</button>
@@ -424,6 +430,7 @@ th{color:var(--sub);font-weight:600;font-size:12px}
       <div class="keyrow">
         <button class="round-btn" onclick="listenPlay()" title="再听一遍">🔊</button>
         <button class="btn ghost" onclick="listenNew()">换一句</button>
+        <button class="btn ghost" id="lsRecBtn" onclick="listenShadow()">🎤 跟读这句</button>
       </div>
       <div class="big-sentence" id="lsSentence">点「换一句」开始</div>
       <div class="opts" id="lsOpts"></div>
@@ -20215,33 +20222,50 @@ function setMode(k){ curMode=k; renderModePick(); startBattle(lastLvl||curLevel(
 window.setMode=setMode;
 let lastLvl=1;
 let sessionPool=[];
+let recentWords=[];                       // 最近出过的词，用于避免连续重复
+const RECENT_MAX=12;                      // 避让窗口：最近12个词不立刻再出
 
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
-// 出题队列：到期复习词 > 新词；未到期的已学词不再出现（防止反复）；全做完才自由练习已学词
+// 出题队列：到期复习词 > 新词；同一词一轮只出现一次；错词均匀穿插（不再连续堆开头）
 function buildPool(lvl){
   const ws=WORDS.filter(w=>w.l<=lvl);
   const due=ws.filter(w=>{const s=wstate(w.w); return s.box>0 && s.due<=Date.now();});
   const fresh=ws.filter(w=>wstate(w.w).box===0);
-  let pool=shuffle([...due,...fresh]);
-  if(!pool.length) pool=shuffle(ws.filter(w=>wstate(w.w).box>0));
-  // 错词本加权：错误率越高，本轮出现越多；连对越多，出现越少（rep 0→不再注入，毕业由 errOk 删除）
+  let base=shuffle([...due,...fresh]);
+  if(!base.length) base=shuffle(ws.filter(w=>wstate(w.w).box>0));
+  // 全局去重：同一个单词整轮队列只保留一次
+  const seen=new Set();
+  base=base.filter(w=>{ if(seen.has(w.w)) return false; seen.add(w.w); return true; });
+  // 错词本：每个错词本轮只注入 1 次，并均匀穿插进队列（避免同一词连续刷多次）
   const s=S();
   if(s.err){
-    const inj=[];
+    const errWords=[];
     for(const k in s.err){
       const e=s.err[k]; if(!e) continue;
       const wd=WORDS.find(w=>w.w===k);
       if(!wd || wstate(k).box>=4) continue;            // 仅未毕业的单词
-      const rep=Math.min(3, Math.round(e.err/(e.err+e.ok)*3));   // 1..3 次
-      for(let i=0;i<rep;i++) inj.push(wd);
+      if(seen.has(wd.w)) continue;                      // 已在队列里就不重复加
+      seen.add(wd.w); errWords.push(wd);
     }
-    if(inj.length) pool=[...inj, ...pool];
+    shuffle(errWords);
+    if(errWords.length && base.length){
+      const merged=[]; let bi=0, ei=0;
+      const gap=Math.max(2, Math.round(base.length/errWords.length));
+      while(bi<base.length || ei<errWords.length){
+        for(let g=0;g<gap && bi<base.length;g++) merged.push(base[bi++]);
+        if(ei<errWords.length) merged.push(errWords[ei++]);
+      }
+      base=merged;
+    } else {
+      base=[...errWords,...base];
+    }
   }
-  return pool;
+  return base;
 }
 function startBattle(lvl){
   lastLvl=lvl;
   resetToday();
+  recentWords=[];
   sessionPool=buildPool(lvl);
   nextQ();
 }
@@ -20252,8 +20276,14 @@ function distractor(cur){
   return out;
 }
 function nextQ(){
-  if(sessionPool.length===0) sessionPool=buildPool(lastLvl);
+  if(sessionPool.length===0){ recentWords=[]; sessionPool=buildPool(lastLvl); }
+  // 队首若在近期窗口内、且后面还有别的词，则把它往后挪，优先出一个没最近出现的词
+  if(sessionPool.length>1){
+    const idx=sessionPool.findIndex(w=>!recentWords.includes(w.w));
+    if(idx>0){ const [w]=sessionPool.splice(idx,1); sessionPool.push(w); }
+  }
   const qw=sessionPool.shift();
+  if(qw){ recentWords.push(qw.w); if(recentWords.length>RECENT_MAX) recentWords.shift(); }
   Q={word:qw, opts:[qw,...distractor(qw)].sort(()=>Math.random()-0.5), answered:false};
   renderQ();
 }
@@ -21627,9 +21657,13 @@ const SENTENCES_EN=[
 ["So far, this printer is a convenient option.","到目前为止，这个打印机是一个方便的选择。"],
 ["At the moment, ask at the clinic for more advice.","目前，到诊所询问更多建议。"]
 ];
-let lsCur=null, lsLocked=false;
+let lsCur=null, lsLocked=false, lsPrev=null;
 function listenNew(){
-  lsCur=SENTENCES[Math.floor(Math.random()*SENTENCES.length)];
+  // 避免与上一句相同
+  let c, pickGuard=0;
+  do { c=SENTENCES[Math.floor(Math.random()*SENTENCES.length)]; pickGuard++; }
+  while(lsPrev && c[0]===lsPrev[0] && pickGuard<30 && SENTENCES.length>1);
+  lsCur=c; lsPrev=c;
   lsLocked=false;
   document.getElementById("lsFeedback").innerHTML="";
   const [en,zh]=lsCur;
@@ -21637,8 +21671,8 @@ function listenNew(){
   const seen=new Set([zh]); const opts=[zh];
   let guard=0;
   while(opts.length<4 && guard++<500){
-    const c=SENTENCES[Math.floor(Math.random()*SENTENCES.length)][1];
-    if(!seen.has(c)){ seen.add(c); opts.push(c); }
+    const oc=SENTENCES[Math.floor(Math.random()*SENTENCES.length)][1];
+    if(!seen.has(oc)){ seen.add(oc); opts.push(oc); }
   }
   shuffle(opts);
   document.getElementById("lsOpts").innerHTML=opts.map(o=>`<div class="opt" data-o="${escapeHtml(o)}" onclick="lsAnswer(this,this.dataset.o)">${escapeHtml(o)}</div>`).join('');
@@ -21663,7 +21697,28 @@ function lsAnswer(el,ch){
   adv.className="btn nextBtn"; adv.textContent="下一句 ▶"; adv.onclick=()=>listenNew();
   fb.appendChild(adv); renderErrCount();
 }
-window.listenPlay=listenPlay; window.listenNew=listenNew; window.lsAnswer=lsAnswer;
+// 听力句子跟读打分：对当前句子录音并打分
+function listenShadow(){
+  if(!lsCur){ listenNew(); return; }
+  const target=lsCur[0], btn=document.getElementById("lsRecBtn"), fb=document.getElementById("lsFeedback");
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ fb.innerHTML="当前浏览器不支持语音识别，iPhone 请用 Safari 打开"; return; }
+  recognizeAndScore(target,{
+    onStart:()=>{ if(btn){btn.classList.add("rec"); btn.textContent="⏹ 停止";} fb.innerHTML='<span class="muted">🎙️ 正在听，请读出这句：'+escapeHtml(target)+'</span>'; },
+    onEnd:()=>{ if(btn){btn.classList.remove("rec"); btn.textContent="🎤 跟读这句";} },
+    onResult:(rawTxt,pct)=>{
+      const s=S(); s.today.shadow=(s.today.shadow||0)+1; save(); refreshTop();
+      let line=`🎤 识别：${escapeHtml(rawTxt)}<br>句子匹配度 <b>${pct}%</b>`;
+      if(pct>=80){ addXP(2); line+='<br>✅ 发音很棒！'; }
+      else if(pct>=50) line+='<br>🟡 不错，再练练重音和连读。';
+      else line+='<br>🔴 先慢速跟读，逐词咬准。';
+      fb.innerHTML=line; sfx(pct>=80?'ok':'no');
+    },
+    onUnsupported:()=>{ fb.innerHTML="当前浏览器不支持语音识别，iPhone 请用 Safari 打开"; },
+    onError:(ev)=>{ if(ev&&(ev.error==='not-allowed'||ev.error==='service-not-allowed')) fb.innerHTML="⚠️ 请允许麦克风权限（设置→Safari→麦克风）"; }
+  });
+}
+window.listenPlay=listenPlay; window.listenNew=listenNew; window.lsAnswer=lsAnswer; window.listenShadow=listenShadow;
 
 /* ============ 影子跟读 ============ */
 const SENTENCES_JA=[
@@ -25035,35 +25090,58 @@ function shadowPlay(slow){ speak(SHADOWS[shIdx], slow?0.6:parseFloat(document.ge
 function shadowNext(play){ shIdx=(shIdx+1)%SHADOWS.length; document.getElementById("shSent").textContent=SHADOWS[shIdx]; document.getElementById("shFeedback").innerHTML=""; if(play) shadowPlay(); }
 function shadowShow(){ document.getElementById("shSent").textContent=SHADOWS[shIdx]; }
 window.shadowPlay=shadowPlay; window.shadowNext=shadowNext;
-let rec=null, recording=false;
-function toggleRec(){
+/* ============ 通用语音识别 & 跟读打分（影子跟读/听力/短文共用）============ */
+let _rec=null, _recording=false;
+// 计算发音匹配度（英文按词命中，日文按2-gram相似度）
+function speechScore(rawTxt, target){
+  if(CUR_LANG==="ja"){
+    const norm=s=>(s||"").replace(/[\s\u3000\u3001\u3002,.!?\uff01\uff1f\u2026\u30fc~\uff5e]/g,"");
+    return Math.round(sim2(norm(rawTxt),norm(target))*100);
+  }
+  const heard=rawTxt.toLowerCase().replace(/[^a-z ]/g,"").trim();
+  const tg=target.toLowerCase().replace(/[^a-z ]/g,"").trim();
+  const tw=tg.split(" "), hw=heard.split(" ");
+  return Math.round(hw.filter(w=>tw.includes(w)).length/Math.max(1,tw.length)*100);
+}
+// 通用录音：对 target 句子打分，通过回调返回结果
+function recognizeAndScore(target, opts){
+  opts=opts||{};
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){ document.getElementById("shFeedback").innerHTML="当前浏览器不支持语音识别，请用 Chrome 打开"; return; }
+  if(!SR){ opts.onUnsupported && opts.onUnsupported(); return null; }
+  if(_recording){ try{ _rec && _rec.stop(); }catch(e){} return null; }
+  try{
+    const r=new SR(); r.lang=LANG().rec; r.interimResults=false; r.continuous=false;
+    r.onresult=e=>{
+      const rawTxt=e.results[0][0].transcript;
+      const pct=speechScore(rawTxt, target);
+      opts.onResult && opts.onResult(rawTxt, pct);
+    };
+    r.onend=()=>{ _recording=false; opts.onEnd && opts.onEnd(); };
+    r.onerror=ev=>{ _recording=false; opts.onError && opts.onError(ev); opts.onEnd && opts.onEnd(); };
+    _recording=true; _rec=r; opts.onStart && opts.onStart(); r.start();
+    return r;
+  }catch(e){ _recording=false; opts.onError && opts.onError({error:'start-failed'}); opts.onEnd && opts.onEnd(); return null; }
+}
+window.speechScore=speechScore; window.recognizeAndScore=recognizeAndScore;
+
+function toggleRec(){
   const btn=document.getElementById("recBtn");
-  if(recording){ rec.stop(); return; }
-  rec=new SR(); rec.lang=LANG().rec; rec.interimResults=false;
-  rec.onresult=e=>{
-    const rawTxt=e.results[0][0].transcript, target=SHADOWS[shIdx];
-    let pct;
-    if(CUR_LANG==="ja"){
-      const norm=s=>(s||"").replace(/[\s\u3000\u3001\u3002,.!?\uff01\uff1f\u2026\u30fc~\uff5e]/g,"");
-      pct=Math.round(sim2(norm(rawTxt),norm(target))*100);
-    }else{
-      const heard=rawTxt.toLowerCase().replace(/[^a-z ]/g,"").trim();
-      const tg=target.toLowerCase().replace(/[^a-z ]/g,"").trim();
-      const tw=tg.split(" "), hw=heard.split(" ");
-      pct=Math.round(hw.filter(w=>tw.includes(w)).length/Math.max(1,tw.length)*100);
-    }
-    s.today.shadow=(s.today.shadow||0)+1;
-    let fb=`🎤 识别：${e.results[0][0].transcript}<br>匹配度 <b>${pct}%</b>`;
-    if(pct>=80){ addXP(2); fb+=`<br>✅ 发音很棒！`; }
-    else if(pct>=50) fb+=`<br>🟡 不错，再找找重音节奏。`;
-    else fb+=`<br>🔴 先慢速逐词跟读。`;
-    document.getElementById("shFeedback").innerHTML=fb; sfx(pct>=80?'ok':'no');
-  };
-  rec.onend=()=>{ recording=false; btn.classList.remove("rec"); btn.textContent="🎤 跟读打分"; };
-  rec.onerror=()=>{ recording=false; btn.classList.remove("rec"); btn.textContent="🎤 跟读打分"; };
-  recording=true; btn.classList.add("rec"); btn.textContent="⏹ 停止"; rec.start();
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ document.getElementById("shFeedback").innerHTML="当前浏览器不支持语音识别，iPhone 请用 Safari 打开"; return; }
+  recognizeAndScore(SHADOWS[shIdx],{
+    onStart:()=>{ btn.classList.add("rec"); btn.textContent="⏹ 停止"; },
+    onEnd:()=>{ btn.classList.remove("rec"); btn.textContent="🎤 跟读打分"; },
+    onResult:(rawTxt,pct)=>{
+      const s=S(); s.today.shadow=(s.today.shadow||0)+1; save(); refreshTop();
+      let fb=`🎤 识别：${escapeHtml(rawTxt)}<br>匹配度 <b>${pct}%</b>`;
+      if(pct>=80){ addXP(2); fb+=`<br>✅ 发音很棒！`; }
+      else if(pct>=50) fb+=`<br>🟡 不错，再找找重音节奏。`;
+      else fb+=`<br>🔴 先慢速逐词跟读。`;
+      document.getElementById("shFeedback").innerHTML=fb; sfx(pct>=80?'ok':'no');
+    },
+    onUnsupported:()=>{ document.getElementById("shFeedback").innerHTML="当前浏览器不支持语音识别，iPhone 请用 Safari 打开"; },
+    onError:(ev)=>{ if(ev&&(ev.error==='not-allowed'||ev.error==='service-not-allowed')) document.getElementById("shFeedback").innerHTML="⚠️ 请允许麦克风权限（设置→Safari→麦克风）"; }
+  });
 }
 window.toggleRec=toggleRec;
 
@@ -25371,6 +25449,12 @@ const READINGS_EN=[
 {t:"A Windy Day in Manchester",body:"Yesterday the weather in Manchester was windy. Hugo decided to stay indoors and cook fish. The recipe was simple and took only thirty minutes. While the food was cooking, Hugo listened to music. In the evening a friend came over and they ate together.",q:"What did the person cook?",opts:["fish","a pizza","a sandwich","a cake"],a:0}
 ];
 let rdIdx=0, rdBusy=false;
+let rdShadowSent=[], rdShadowIdx=0, rdShadowOf=-1;
+// 把短文拆成句子（兼容旧版 Safari，不使用 lookbehind）
+function splitSentences(text){
+  const m=String(text||'').match(/[^.!?。！？]+[.!?。！？]?/g);
+  return (m||[String(text||'')]).map(s=>s.trim()).filter(Boolean);
+}
 function rdLevelOf(i){ return i<400?"A2 入门":(i<800?"B1 进阶":"B2 雅思向"); }
 function rdGo(d){
   if(d===0) rdIdx=Math.floor(Math.random()*READINGS.length);
@@ -25382,15 +25466,60 @@ function renderReading(){
   const s=S(); if(typeof s.rd==="number" && s.rd>=0 && s.rd<READINGS.length) rdIdx=s.rd;
   const r=READINGS[rdIdx]; if(!r) return;
   rdBusy=false;
+  if(rdShadowOf!==rdIdx){ rdShadowSent=splitSentences(r.body); rdShadowIdx=0; rdShadowOf=rdIdx; }
   const pos=document.getElementById("rdPos"); if(pos) pos.textContent="第 "+(rdIdx+1)+" / "+READINGS.length+" 篇 · "+rdLevelOf(rdIdx);
   document.getElementById("reading").innerHTML=`
     <div class="rpass"><h3><span>${escapeHtml(r.t)}</span><span class="tag">${rdLevelOf(rdIdx)}</span></h3>
     <p>${escapeHtml(r.body)}</p>
+    <div class="rd-shadow">
+      <div style="font-weight:600;margin-bottom:6px">🗣️ 逐句跟读 <span class="muted" id="rdShPos"></span>
+        <button class="btn ghost" style="float:right;padding:5px 12px;font-size:12px" onclick="rdReadAll()">📢 朗读全文</button>
+      </div>
+      <div class="big-sentence" id="rdShSent" style="font-size:16px;text-align:left"></div>
+      <div class="keyrow" style="justify-content:flex-start">
+        <button class="round-btn" onclick="rdShadowPlay()" title="听这句">🔊</button>
+        <button class="btn ghost" id="rdShBtn" onclick="rdShadowRec()">🎤 跟读打分</button>
+        <button class="btn ghost" onclick="rdShadowNext()">下一句 →</button>
+      </div>
+      <div class="feedback" id="rdShFb"></div>
+    </div>
     <hr style="border:none;border-top:1px solid var(--ring);margin:12px 0">
     <p style="font-weight:600;margin-bottom:8px">📝 ${escapeHtml(r.q)}</p>
     <div class="opts" style="grid-template-columns:1fr;max-width:100%">${r.opts.map((o,j)=>`<div class="opt" style="text-align:left" onclick="readAns(this,${j})">${escapeHtml(o)}</div>`).join('')}</div>
     <div class="feedback" id="rdFb"></div></div>`;
+  rdRenderShadow();
 }
+// 短文跟读：渲染当前跟读句
+function rdRenderShadow(){
+  if(rdShadowOf!==rdIdx){ rdShadowSent=splitSentences(READINGS[rdIdx].body); rdShadowIdx=0; rdShadowOf=rdIdx; }
+  const pos=document.getElementById('rdShPos'); if(pos) pos.textContent=(rdShadowIdx+1)+' / '+rdShadowSent.length;
+  const el=document.getElementById('rdShSent'); if(el) el.textContent=rdShadowSent[rdShadowIdx]||'';
+  const fb=document.getElementById('rdShFb'); if(fb) fb.innerHTML='';
+}
+function rdReadAll(){ const r=READINGS[rdIdx]; if(r) speak(r.body, 0.92); }
+function rdShadowPlay(){ const t=rdShadowSent[rdShadowIdx]; if(t) speak(t, 0.82); }
+function rdShadowNext(){ rdShadowIdx=(rdShadowIdx+1)%Math.max(1,rdShadowSent.length); rdRenderShadow(); rdShadowPlay(); }
+function rdShadowRec(){
+  const target=rdShadowSent[rdShadowIdx]; if(!target) return;
+  const btn=document.getElementById('rdShBtn'), fb=document.getElementById('rdShFb');
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ fb.innerHTML="当前浏览器不支持语音识别，iPhone 请用 Safari 打开"; return; }
+  recognizeAndScore(target,{
+    onStart:()=>{ if(btn){btn.classList.add('rec'); btn.textContent='⏹ 停止';} fb.innerHTML='<span class="muted">🎙️ 正在听，请读出这句…</span>'; },
+    onEnd:()=>{ if(btn){btn.classList.remove('rec'); btn.textContent='🎤 跟读打分';} },
+    onResult:(rawTxt,pct)=>{
+      const s=S(); s.today.shadow=(s.today.shadow||0)+1; save(); refreshTop();
+      let line=`🎤 识别：${escapeHtml(rawTxt)}<br>匹配度 <b>${pct}%</b>`;
+      if(pct>=80){ addXP(2); line+='<br>✅ 这句读得很标准！'; }
+      else if(pct>=50) line+='<br>🟡 不错，注意连读和重音。';
+      else line+='<br>🔴 点🔊再听一遍，慢速模仿。';
+      fb.innerHTML=line; sfx(pct>=80?'ok':'no');
+    },
+    onUnsupported:()=>{ fb.innerHTML="当前浏览器不支持语音识别，iPhone 请用 Safari 打开"; },
+    onError:(ev)=>{ if(ev&&(ev.error==='not-allowed'||ev.error==='service-not-allowed')) fb.innerHTML="⚠️ 请允许麦克风权限（设置→Safari→麦克风）"; }
+  });
+}
+window.rdReadAll=rdReadAll; window.rdShadowPlay=rdShadowPlay; window.rdShadowNext=rdShadowNext; window.rdShadowRec=rdShadowRec;
 function readAns(el,j){
   if(rdBusy) return; rdBusy=true;                       // 防连点刷 XP
   const fb=document.getElementById("rdFb"); const s=S(); s.today.quiz++; s.today.read=(s.today.read||0)+1;
@@ -27342,7 +27471,10 @@ function lzStart(){
   lzTimer=setInterval(()=>{ lzLeft--; document.getElementById('lzTime').textContent=lzLeft; if(lzLeft<=0) lzEnd(); },1000);
 }
 function lzNext(){
-  const w=WORDS[Math.floor(Math.random()*WORDS.length)];
+  // 避免与上一题同一个单词
+  let w, guard=0;
+  do { w=WORDS[Math.floor(Math.random()*WORDS.length)]; guard++; }
+  while(lzQ && w.w===lzQ.w && guard<30);
   const seen=new Set([w.zh]); const others=[];
   let g=0; while(others.length<3 && g++<400){ const c=WORDS[Math.floor(Math.random()*WORDS.length)].zh; if(c && !seen.has(c)){ seen.add(c); others.push(c); } }
   const opts=shuffle([w.zh].concat(others));
