@@ -266,6 +266,45 @@ th{color:var(--sub);font-weight:600;font-size:12px}
 .lzTime{font-size:30px;font-weight:800;color:var(--pri);font-variant-numeric:tabular-nums}
 .lzScore{font-size:18px;font-weight:700}
 #lzWord{font-size:30px;font-weight:800}
+
+/* 学习路线与新信息架构 */
+.view-head{margin:4px 2px 14px}.view-head h1{font-size:23px;line-height:1.25;margin-bottom:4px}.view-head p{color:var(--sub);font-size:13px}
+.route-top{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}
+.route-kicker{font-size:12px;color:var(--pri);font-weight:800;margin-bottom:3px}.route-title{font-size:20px;font-weight:850;line-height:1.35}
+.route-progress{min-width:108px;text-align:right;color:var(--sub);font-size:12px}.route-progress b{display:block;color:var(--pri);font-size:22px;line-height:1.15}
+.route-list{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.route-step{position:relative;text-align:left;border:1px solid var(--ring);background:var(--card2);color:var(--ink);border-radius:14px;padding:13px 12px;cursor:pointer;font-family:inherit;min-height:112px;transition:.16s}
+.route-step:hover{transform:translateY(-2px);border-color:var(--pri2)}
+.route-step.current{border-color:var(--pri);box-shadow:0 0 0 3px color-mix(in srgb,var(--pri) 14%,transparent)}
+.route-step.done{background:color-mix(in srgb,var(--ok) 10%,var(--card2));border-color:color-mix(in srgb,var(--ok) 55%,var(--ring))}
+.route-step .ri{font-size:23px;line-height:1}.route-step .rn{font-size:14px;font-weight:800;margin:7px 0 2px}
+.route-step .rd{font-size:11.5px;color:var(--sub);line-height:1.45}.route-step .rs{font-size:10px;color:var(--pri);font-weight:800;margin-top:6px}
+.continue-btn{margin-top:10px}.nav-badge{display:inline-flex;min-width:17px;height:17px;padding:0 5px;align-items:center;justify-content:center;border-radius:999px;background:var(--bad);color:#fff;font-size:10px;margin-left:3px}.nav-badge:empty{display:none}
+
+/* 配对翻翻乐 */
+.match-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:11px}
+.match-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.match-card{border:1px solid var(--ring);background:var(--card2);color:var(--ink);border-radius:13px;min-height:72px;padding:8px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:.16s;display:flex;align-items:center;justify-content:center;text-align:center;overflow-wrap:anywhere}
+.match-card:hover{border-color:var(--pri2)}.match-card.open{background:color-mix(in srgb,var(--pri) 14%,var(--card2));border-color:var(--pri)}
+.match-card.matched{background:color-mix(in srgb,var(--ok) 14%,var(--card2));border-color:var(--ok);opacity:.68}
+
+@media(max-width:720px){
+  body{font-size:14px;padding-bottom:calc(72px + var(--safe-b))}.wrap{padding:0 12px calc(86px + var(--safe-b));max-width:none}
+  header{margin:0 -12px 8px;padding:calc(var(--safe-t) + 8px) 12px 8px;flex-wrap:nowrap}.logo{font-size:15px;flex:0 0 auto}
+  .tools{width:auto;min-width:0;flex:1;justify-content:flex-end;overflow-x:auto}.tools>span.chip{display:none}
+  .profiles{flex:0 0 auto}.profiles .chip,.tools>button.chip{padding:5px 8px}.tools>button.chip b{display:none}
+  nav{position:fixed;left:0;right:0;bottom:0;z-index:90;margin:0;padding:7px 8px calc(7px + var(--safe-b));display:grid;grid-template-columns:repeat(5,1fr);gap:4px;background:color-mix(in srgb,var(--card) 94%,transparent);border-top:1px solid var(--ring);box-shadow:0 -8px 26px rgba(20,28,50,.12);backdrop-filter:blur(18px)}
+  nav button{border:0;background:transparent;padding:6px 2px;border-radius:11px;font-size:11px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:1px;line-height:1.2}
+  nav button .ni{font-size:20px;line-height:1.1}nav button.on{background:color-mix(in srgb,var(--pri) 14%,var(--card));color:var(--pri)}
+  .view-head{margin:9px 2px 12px}.view-head h1{font-size:20px}.card{padding:14px;border-radius:15px;margin-bottom:10px;box-shadow:0 4px 14px rgba(24,36,72,.06)}
+  .route-top{align-items:center}.route-title{font-size:18px}.route-progress{min-width:78px}.route-list{grid-template-columns:1fr 1fr}.route-step{min-height:104px;padding:12px 11px}
+  .todayTop{gap:12px}.ring .p{font-size:20px}
+  .step{padding:11px 10px;gap:9px}.step .btn{padding:9px 12px}.opts{grid-template-columns:1fr 1fr;gap:8px}.opt{min-height:58px;padding:10px 8px}
+  .keyrow{gap:7px}.keyrow .typing{width:100%;min-width:0}.btn,.rec-btn{min-height:44px}.match-grid{grid-template-columns:repeat(3,1fr)}.match-card{min-height:66px;font-size:12px}
+  .update-toast{bottom:calc(78px + var(--safe-b)) !important}
+  #c-method{overflow-x:auto}table{min-width:540px}.langrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}.lcard{min-width:0;padding:18px 10px}
+}
+@media(max-width:370px){.route-list{grid-template-columns:1fr}.route-step{min-height:86px}.opts{grid-template-columns:1fr}.match-grid{grid-template-columns:repeat(2,1fr)}.profiles .chip{font-size:11px;padding:5px 6px}}
 </style>
 </head>
 <body data-page-node-id="AzafKYxoeyF40zdhGLT9G9">
@@ -303,12 +342,11 @@ th{color:var(--sub);font-weight:600;font-size:12px}
   </header>
 
   <nav id="nav">
-    <button data-g="today" class="on">🏠 今天</button>
-    <button data-g="word">⚔️ 单词<span id="errNavCount" class="nav-badge"></span></button>
-    <button data-g="listen">👂 听说</button>
-    <button data-g="read">📖 读写</button>
-    <button data-g="start">🎓 起步</button>
-    <button data-g="goal">🎯 目标</button>
+    <button data-g="today" class="on"><span class="ni">🏠</span><span>今天</span></button>
+    <button data-g="word"><span class="ni">🧭</span><span>课程</span></button>
+    <button data-g="listen"><span class="ni">✍️</span><span>练习<span id="errNavCount" class="nav-badge"></span></span></button>
+    <button data-g="read"><span class="ni">🎮</span><span>游戏</span></button>
+    <button data-g="start"><span class="ni">👤</span><span>我的</span></button>
   </nav>
 
   <!-- ==================== 今天 ==================== -->
@@ -327,6 +365,7 @@ th{color:var(--sub);font-weight:600;font-size:12px}
           <div class="ch"><span class="ci">🏠</span><h2>今天 30 分钟</h2></div>
           <p class="desc" id="todayLead">按顺序做完下面 4 件事就够了。每件事点右边「开始」，做完自动打勾。</p>
           <div class="planbar"><i id="planBar" style="width:0%"></i></div>
+          <button class="btn continue-btn" id="continueBtn" onclick="continueLearning()">继续当前课程 →</button>
         </div>
       </div>
     </div>
@@ -352,6 +391,15 @@ th{color:var(--sub);font-weight:600;font-size:12px}
 
   <!-- ==================== 单词 ==================== -->
   <section class="panel" id="p-word">
+    <div class="card" id="c-roadmap">
+      <div class="route-top">
+        <div><div class="route-kicker">为你推荐的学习路线</div><div class="route-title" id="routeTitle">正在计算当前阶段…</div></div>
+        <div class="route-progress"><b id="routePct">0%</b><span id="routeMeta">阶段进度</span></div>
+      </div>
+      <div class="planbar"><i id="routeBar" style="width:0%"></i></div>
+      <p class="desc" id="routeDesc">系统按真实掌握量推荐下一步；全部课程仍可随时进入。</p>
+      <div class="route-list" id="routeList"></div>
+    </div>
     <div class="card" id="c-battle">
       <div class="ch"><span class="ci">⚔️</span><h2>打怪背单词</h2></div>
       <p class="desc">看题目选答案。答对它会升级、过几天再来；答错就进错词本，很快会再遇到。<b>答完点「下一个」，别急着刷新。</b></p>
@@ -419,6 +467,14 @@ th{color:var(--sub);font-weight:600;font-size:12px}
       <div class="keyrow" style="justify-content:center">
         <button class="btn" onclick="lzStart()">▶ 开始 30 秒</button>
       </div>
+    </div>
+
+    <div class="card" id="c-match">
+      <div class="ch"><span class="ci">🃏</span><h2>词义翻翻乐</h2></div>
+      <p class="desc">把词和意思配成一对。每局 6 对，不重复抽词，越少翻牌越厉害。</p>
+      <div class="match-head"><span class="muted" id="matchStat">点击开始新一局</span><button class="btn" onclick="matchStart()">新一局</button></div>
+      <div class="match-grid" id="matchGrid"></div>
+      <div class="feedback" id="matchFb"></div>
     </div>
   </section>
 
@@ -20445,7 +20501,7 @@ function refreshTop(){
   const p=coveragePct();
   document.getElementById("covPct").textContent=p+"%";
   document.getElementById("covRing").style.strokeDashoffset=276.5*(1-p/100);
-  renderMemory(); renderAch(); renderToday(); renderCollection(); renderErrCount();
+  renderMemory(); renderAch(); renderToday(); renderCollection(); renderErrCount(); renderRoadmap();
 }
 function renderMemory(){
   const bins=[0,0,0,0,0,0];
@@ -25457,8 +25513,12 @@ function splitSentences(text){
 }
 function rdLevelOf(i){ return i<400?"A2 入门":(i<800?"B1 进阶":"B2 雅思向"); }
 function rdGo(d){
-  if(d===0) rdIdx=Math.floor(Math.random()*READINGS.length);
-  else rdIdx=(rdIdx+d+READINGS.length)%READINGS.length;
+  const oldTitle=(READINGS[rdIdx]||{}).t; let guard=0;
+  do{
+    if(d===0) rdIdx=Math.floor(Math.random()*READINGS.length);
+    else rdIdx=(rdIdx+d+READINGS.length)%READINGS.length;
+    guard++;
+  }while(READINGS.length>1&&(READINGS[rdIdx]||{}).t===oldTitle&&guard<READINGS.length);
   S().rd=rdIdx; save(); renderReading();
 }
 window.rdGo=rdGo;
@@ -25688,20 +25748,57 @@ function tmToggle(){
 function tmReset(){ if(tmId){clearInterval(tmId); tmId=null;} tmLeft=1800; tmRender(); }
 window.tmToggle=tmToggle; window.tmReset=tmReset;
 
-/* ============ 导航 ============ */
-const PANEL_OF={today:["today",""],word:["word",""],battle:["word","c-battle"],err:["word","c-err"],
- map:["word","c-map"],listen:["listen","c-listen"],shadow:["listen","c-shadow"],
- read:["read","c-reading"],grammar:["read","c-grammar"],ai:["read","c-ai"],
- abc:["start","c-abc"],ielts:["goal","c-ielts"],method:["goal","c-method"]};
+/* ============ 学习路线 + 导航 ============ */
+const ROUTE_STAGES=[
+  {n:"声音起步",i:"🔤",d:"字母 / 五十音、发音与拼读",target:20,go:"abc"},
+  {n:"高频词汇",i:"⚔️",d:"先掌握最常用的核心词",target:60,go:"battle"},
+  {n:"听说成句",i:"🎧",d:"从听懂到敢于开口",target:120,go:"listen"},
+  {n:"阅读表达",i:"📖",d:"读短文、练语法与表达",target:300,go:"read"}
+];
+function masteredNow(){ return WORDS.filter(w=>wstate(w.w).box>=4).length; }
+function routeIndex(){ const m=masteredNow(); const i=ROUTE_STAGES.findIndex(x=>m<x.target); return i<0?ROUTE_STAGES.length-1:i; }
+function renderRoadmap(){
+  const box=document.getElementById("routeList"); if(!box||!PROF) return;
+  const m=masteredNow(), ci=routeIndex(), cur=ROUTE_STAGES[ci], prev=ci?ROUTE_STAGES[ci-1].target:0;
+  const pct=Math.max(0,Math.min(100,Math.round((m-prev)/Math.max(1,cur.target-prev)*100)));
+  document.getElementById("routeTitle").textContent="第 "+(ci+1)+" 阶段 · "+cur.n;
+  document.getElementById("routePct").textContent=pct+"%";
+  document.getElementById("routeMeta").textContent=Math.min(m,cur.target)+" / "+cur.target+" 词基准";
+  document.getElementById("routeBar").style.width=pct+"%";
+  document.getElementById("routeDesc").textContent="当前建议："+cur.d+"。完成本阶段后自动推荐下一阶段。";
+  box.innerHTML=ROUTE_STAGES.map((st,i)=>'<button class="route-step '+(m>=st.target?'done':(i===ci?'current':''))+'" onclick="goTab(\''+st.go+'\')">'+
+    '<div class="ri">'+st.i+'</div><div class="rn">'+(i+1)+'. '+st.n+'</div><div class="rd">'+st.d+'</div><div class="rs">'+(m>=st.target?'✓ 已达标':(i===ci?'正在学习':'可提前体验'))+'</div></button>').join('');
+  const lead=document.getElementById("todayLead"); if(lead) lead.textContent="你正处于「"+cur.n+"」阶段。今天按顺序完成 4 个小任务，不必在功能列表里找来找去。";
+  const btn=document.getElementById("continueBtn"); if(btn) btn.textContent="继续「"+cur.n+"」 →";
+}
+function continueLearning(){ goTab(ROUTE_STAGES[routeIndex()].go); }
+window.continueLearning=continueLearning;
+
+function organizeApp(){
+  const groups={
+    word:["c-roadmap","c-abc","c-pho","c-phonics","c-battle"],
+    listen:["c-err","c-listen","c-shadow","c-dictate","c-reading","c-grammar","c-synonym","c-ai"],
+    read:["c-chain","c-lz","c-scramble","c-match"],
+    start:["c-map","c-mem","c-collection","c-ielts","c-phases","c-method"]
+  };
+  const heads={today:["今天学什么","系统已经排好顺序，完成一项就会自动记录。"],word:["分阶段课程","从发音到表达，按当前掌握量推荐下一步。"],listen:["专项练习","错词、听说、阅读和表达集中练，不再和游戏混在一起。"],read:["游戏乐园","短局、有反馈、有奖励，练习可以很好玩。"],start:["我的进度","关卡、记忆、收藏与 90 天目标都在这里。"]};
+  Object.keys(groups).forEach(g=>{ const p=document.getElementById("p-"+g); groups[g].forEach(id=>{const el=document.getElementById(id);if(el)p.appendChild(el);}); });
+  Object.keys(heads).forEach(g=>{ const p=document.getElementById("p-"+g); if(!p||(p.firstElementChild&&p.firstElementChild.classList.contains("view-head")))return; const h=document.createElement("div");h.className="view-head";h.innerHTML="<h1>"+heads[g][0]+"</h1><p>"+heads[g][1]+"</p>";p.insertBefore(h,p.firstChild); });
+}
+
+const PANEL_OF={today:["today",""],word:["word",""],battle:["word","c-battle"],abc:["word","c-abc"],
+ err:["listen","c-err"],listen:["listen","c-listen"],shadow:["listen","c-shadow"],read:["listen","c-reading"],grammar:["listen","c-grammar"],ai:["listen","c-ai"],
+ chain:["read","c-chain"],lightning:["read","c-lz"],scramble:["read","c-scramble"],match:["read","c-match"],
+ map:["start","c-map"],ielts:["start","c-ielts"],method:["start","c-method"],start:["word","c-roadmap"]};
 function showPanel(g){
   document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on",x.dataset.g===g));
   document.querySelectorAll(".panel").forEach(x=>x.classList.remove("on"));
   const p=document.getElementById("p-"+g); if(p) p.classList.add("on");
-  if(g!=="word" && lzTimer){ clearInterval(lzTimer); lzTimer=null; lzActive=false; }
-  if(g==="word"){ renderMap(); renderErr(); if(!chainCur) chainNew(); }
-  if(g==="goal") renderIelts();
-  if(g==="read"){ renderReading(); if(!synCur) synNew(); if(!scSent) scNew(); }
-  if(g==="listen" && !dictCur) dictateNew();
+  if(g!=="read" && lzTimer){ clearInterval(lzTimer); lzTimer=null; lzActive=false; }
+  if(g==="word") renderRoadmap();
+  if(g==="listen"){ renderErr(); renderReading(); if(!synCur) synNew(); if(!dictCur) dictateNew(); }
+  if(g==="read"){ if(!chainCur) chainNew(); if(!scSent) scNew(); }
+  if(g==="start"){ renderMap(); renderIelts(); }
   window.scrollTo({top:0,behavior:"smooth"});
 }
 function goTab(t){
@@ -25712,7 +25809,7 @@ function goTab(t){
   if(t==="listen" && !lsCur) listenNew();
   if(t==="shadow"){ if(!SHADOWS[shIdx]) shIdx=0; shadowShow(); }
   if(t==="battle" && !Q) startBattle(lastLvl||curLevel());
-  if(t==="start" && first!=="p-start") sfx('click');
+  if(t==="start" && first!=="p-word") sfx('click');
 }
 window.goTab=goTab; window.showPanel=showPanel;
 document.querySelectorAll("nav button").forEach(b=>{ b.onclick=()=>showPanel(b.dataset.g); });
@@ -27318,6 +27415,19 @@ let SYN=null, synCur=null, dictCur=null, dictBlank=null;
 const DICT_STOP=new Set(["the","a","an","and","or","but","that","this","these","those","with","from","they","were","have","has","had","will","would","should","could","been","are","is","was","for","not","what","when","which","there","here","very","more","most","some","many","much","than","then","into","over","after","before","about","also","each","such","just","like","your","our","their","you","we","he","she","it","to","of","in","on","at","by","as","so","if","out","up","down","off","my","me","us","them","his","her"]);
 function dictateNew(){
   let tries=0; dictCur=null; dictBlank=null;
+  if(CUR_LANG==="ja"){
+    dictCur=SENTENCES[Math.floor(Math.random()*SENTENCES.length)][0];
+    let cands=WORDS.filter(w=>w.w&&[...w.w].length<=7&&dictCur.includes(w.w));
+    if(cands.length) dictBlank={w:cands[Math.floor(Math.random()*cands.length)].w,ja:true};
+    else{
+      const chars=[...letters(dictCur)], len=Math.min(3,Math.max(1,chars.length-1));
+      const start=Math.floor(Math.random()*Math.max(1,chars.length-len));
+      dictBlank={w:chars.slice(start,start+len).join(""),ja:true};
+    }
+    const at=dictCur.indexOf(dictBlank.w), hint=[...dictBlank.w][0]+"＿".repeat(Math.max(1,[...dictBlank.w].length-1));
+    document.getElementById('dictSent').innerHTML=escapeHtml(dictCur.slice(0,at))+'<span class="bl">'+escapeHtml(hint)+'</span>'+escapeHtml(dictCur.slice(at+dictBlank.w.length));
+    document.getElementById('dictIn').value=''; document.getElementById('dictFb').innerHTML=''; speak(dictCur); return;
+  }
   while(tries++<60){
     const c=SENTENCES[Math.floor(Math.random()*SENTENCES.length)][0];
     const words=c.split(/\s+/); const cands=[];
@@ -27338,8 +27448,9 @@ function dictateNew(){
 }
 function dictateCheck(){
   if(!dictCur||!dictBlank) return;
-  const v=document.getElementById('dictIn').value.trim().toLowerCase().replace(/[^a-z']/g,'');
-  const ans=dictBlank.w.toLowerCase().replace(/[^a-z']/g,'');
+  const normalize=x=>CUR_LANG==="ja"?letters(x):String(x).trim().toLowerCase().replace(/[^a-z']/g,'');
+  const v=normalize(document.getElementById('dictIn').value);
+  const ans=normalize(dictBlank.w);
   const fb=document.getElementById('dictFb');
   if(!v){ fb.innerHTML='先写点什么～'; return; }
   const s=S(); s.today.quiz++; s.today.listen=(s.today.listen||0)+1;
@@ -27387,34 +27498,38 @@ let WORDSET=null, chainCur='', chainUsed=[];
 let scSent=null, scAns=[], scBank=[];
 let lzTimer=null, lzScore=0, lzLeft=0, lzQ=null, lzActive=false;
 function letters(w){ return String(w).toLowerCase().replace(/[^\p{L}]/gu,''); }
+function chainWord(raw){ const k=letters(raw); return WORDS.find(x=>letters(x.w)===k||(CUR_LANG==="ja"&&letters(x.ph)===k)); }
+function chainReading(raw){ const w=chainWord(raw); return letters(CUR_LANG==="ja"&&w?(w.ph||w.w):(w?w.w:raw)); }
 
 /* ---- 单词接龙 ---- */
 function chainNew(){
   chainUsed=[];
-  const w=WORDS[Math.floor(Math.random()*WORDS.length)].w;
-  chainCur=w; chainUsed.push(letters(w));
-  document.getElementById('chainCur').textContent=w;
+  let w=WORDS[Math.floor(Math.random()*WORDS.length)],guard=0;
+  while(CUR_LANG==="ja"&&chainReading(w.w).endsWith("ん")&&guard++<50) w=WORDS[Math.floor(Math.random()*WORDS.length)];
+  chainCur=w.w; chainUsed.push(letters(w.w));
+  document.getElementById('chainCur').textContent=w.w+(CUR_LANG==="ja"&&w.ph?"（"+w.ph+"）":"");
   document.getElementById('chainIn').value='';
   document.getElementById('chainFb').innerHTML='';
   document.getElementById('chainLen').textContent='连击 0';
   speak(w);
 }
 function chainSubmit(){
-  const v=letters(document.getElementById('chainIn').value);
+  const raw=document.getElementById('chainIn').value, ent=chainWord(raw), v=ent?letters(ent.w):letters(raw);
   const fb=document.getElementById('chainFb');
   if(!v){ fb.textContent='先输入一个词～'; return; }
-  const need=letters(chainCur).slice(-1);
-  if(!WORDSET.has(v)){ fb.innerHTML='❌ 词库里没找到「'+escapeHtml(v)+'」。换个词试试。'; sfx('no'); return; }
+  const need=chainReading(chainCur).slice(-1), reading=ent?chainReading(ent.w):v;
+  if(!ent){ fb.innerHTML='❌ 词库里没找到「'+escapeHtml(raw)+'」。换个词试试。'; sfx('no'); return; }
   if(chainUsed.includes(v)){ fb.innerHTML='❌ 「'+escapeHtml(v)+'」已经用过啦。'; sfx('no'); return; }
-  if(v[0]!==need){ fb.innerHTML='❌ 要接「'+need.toUpperCase()+'」开头的词，你是「'+escapeHtml(v)+'」'; sfx('no'); return; }
-  chainUsed.push(v); chainCur=v;
+  if(reading[0]!==need){ fb.innerHTML='❌ 要接「'+escapeHtml(need.toUpperCase())+'」开头的词。'; sfx('no'); return; }
+  chainUsed.push(v); chainCur=ent.w;
   const s=S(); s.today.quiz=(s.today.quiz||0)+1; addXP(2); sfx('ok');
-  document.getElementById('chainCur').textContent=v;
+  document.getElementById('chainCur').textContent=ent.w+(CUR_LANG==="ja"&&ent.ph?"（"+ent.ph+"）":"");
   document.getElementById('chainIn').value='';
   document.getElementById('chainLen').textContent='连击 '+(chainUsed.length-1);
-  fb.innerHTML='✅ 漂亮！下一个接「'+v.slice(-1).toUpperCase()+'」';
+  const next=reading.slice(-1);
+  fb.innerHTML=CUR_LANG==="ja"&&next==="ん"?'🏁 以「ん」结尾，本局完成！点右上角重开。':'✅ 漂亮！下一个接「'+escapeHtml(next.toUpperCase())+'」';
   save(); refreshTop();
-  speak(v);
+  speak(ent.w);
   const b=document.createElement('button'); b.className='btn nextBtn'; b.textContent='继续 ▶'; b.onclick=()=>document.getElementById('chainIn').focus(); fb.appendChild(b);
 }
 window.chainNew=chainNew; window.chainSubmit=chainSubmit;
@@ -27500,13 +27615,49 @@ function lzEnd(){
 }
 window.lzStart=lzStart; window.lzAnswer=lzAnswer;
 
+/* ---- 词义翻翻乐 ---- */
+let matchDeck=[], matchOpen=[], matchMoves=0, matchPairs=0, matchLock=false;
+function matchStart(){
+  const used=new Set(), usedZh=new Set(), pairs=[]; let guard=0;
+  while(pairs.length<6 && guard++<500){
+    const w=WORDS[Math.floor(Math.random()*WORDS.length)];
+    if(!w||!w.w||!w.zh||used.has(w.w)||usedZh.has(w.zh)) continue;
+    used.add(w.w); usedZh.add(w.zh); pairs.push(w);
+  }
+  matchDeck=shuffle(pairs.flatMap((w,i)=>[{id:i,text:w.w,kind:"word",done:false},{id:i,text:w.zh,kind:"meaning",done:false}]));
+  matchOpen=[]; matchMoves=0; matchPairs=0; matchLock=false;
+  document.getElementById("matchFb").innerHTML=""; renderMatch();
+}
+function renderMatch(){
+  const grid=document.getElementById("matchGrid"); if(!grid)return;
+  grid.innerHTML=matchDeck.map((c,i)=>'<button class="match-card '+(c.done?'matched':(matchOpen.includes(i)?'open':''))+'" onclick="matchFlip('+i+')" '+(c.done?'disabled':'')+'>'+(c.done||matchOpen.includes(i)?escapeHtml(c.text):'？')+'</button>').join('');
+  document.getElementById("matchStat").textContent="翻牌 "+matchMoves+" 次 · 配对 "+matchPairs+" / 6";
+}
+function matchFlip(i){
+  if(matchLock||!matchDeck[i]||matchDeck[i].done||matchOpen.includes(i)) return;
+  matchOpen.push(i); renderMatch(); speak(matchDeck[i].kind==="word"?matchDeck[i].text:"");
+  if(matchOpen.length<2)return;
+  matchMoves++; const a=matchDeck[matchOpen[0]],b=matchDeck[matchOpen[1]];
+  if(a.id===b.id&&a.kind!==b.kind){
+    a.done=b.done=true; matchPairs++; matchOpen=[]; addXP(2); sfx("ok"); renderMatch();
+    if(matchPairs===6){ const s=S();s.today.quiz=(s.today.quiz||0)+6;save();refreshTop();document.getElementById("matchFb").innerHTML="🎉 全部配对成功！共翻牌 <b>"+matchMoves+"</b> 次。"; }
+  }else{
+    matchLock=true; sfx("no"); setTimeout(()=>{matchOpen=[];matchLock=false;renderMatch();},650);
+  }
+}
+window.matchStart=matchStart; window.matchFlip=matchFlip;
+
+function uniqueBy(list,key){
+  const seen=new Set(); return list.filter(item=>{const k=key(item);if(!k||seen.has(k))return false;seen.add(k);return true;});
+}
+
 function applyLang(l){
   CUR_LANG=l;
   STORE_KEY="english_planet_v1"+LANG().store;
-  WORDS    = l==="ja"?WORDS_JA:WORDS_EN;
-  SENTENCES= l==="ja"?SENTENCES_JA:SENTENCES_EN;
-  SHADOWS  = l==="ja"?SHADOWS_JA:SHADOWS_EN;
-  READINGS = (l==="ja"?READINGS_JA:READINGS_EN).concat(l==="ja"?READINGS_EXTRA_JA:READINGS_EXTRA_EN);
+  WORDS    = uniqueBy(l==="ja"?WORDS_JA:WORDS_EN,w=>String(w.w||"").trim().toLowerCase());
+  SENTENCES= uniqueBy(l==="ja"?SENTENCES_JA:SENTENCES_EN,s=>String(s[0]||"").trim().toLowerCase());
+  SHADOWS  = uniqueBy(l==="ja"?SHADOWS_JA:SHADOWS_EN,s=>String(s[0]||s).trim().toLowerCase());
+  READINGS = uniqueBy((l==="ja"?READINGS_JA:READINGS_EN).concat(l==="ja"?READINGS_EXTRA_JA:READINGS_EXTRA_EN),r=>String(r.body||r.t||"").trim().toLowerCase());
   GRAMMAR  = l==="ja"?GRAMMAR_JA:GRAMMAR_EN;
   SYN      = l==="ja"?SYN_JA:SYN_EN;
   WORDSET  = new Set(WORDS.map(w=>String(w.w).toLowerCase()));
@@ -27514,10 +27665,24 @@ function applyLang(l){
   PHONES   = l==="ja"?PHONES_JA:PHONES_EN;
   TOTAL_W  = WORDS.length;
   MODES    = MODE_LIST();
+  /* 语言切换后清空当前题，防止英语题残留到日语模式（反之亦然） */
+  lsCur=null; lsPrev=null; lsLocked=false; dictCur=null; dictBlank=null; synCur=null;
+  chainCur=""; chainUsed=[]; scSent=null; scAns=[]; scBank=[]; matchDeck=[]; matchOpen=[];
+  if(lzTimer) clearInterval(lzTimer); lzTimer=null; lzActive=false; lzQ=null;
+  rdShadowSent=[]; rdShadowIdx=0; rdShadowOf=-1; recentWords=[]; sessionPool=[];
   const nm=LANG().name, ic=LANG().icon;
   document.getElementById("logoName").textContent=nm;
   document.getElementById("logoIcon").textContent=ic;
   document.getElementById("langName").textContent=nm;
+  const chainCard=document.querySelector("#c-chain .desc"), chainIn=document.getElementById("chainIn");
+  if(chainCard) chainCard.textContent=l==="ja"?"按读音玩日语しりとり：上一个词的末尾假名，要接下一个词的开头假名。以「ん」结尾则本局结束。":"上一个词的最后一个字母，接下一个词的首字母。词库里的词都能玩。";
+  if(chainIn) chainIn.placeholder=l==="ja"?"输入日语词或假名读音":"输入接龙的单词";
+  const listenDesc=document.querySelector("#c-listen .desc"), phoneDesc=document.querySelector("#c-pho .desc"), lzDesc=document.querySelector("#c-lz .desc"), dictDesc=document.querySelector("#c-dictate .desc");
+  if(listenDesc) listenDesc.textContent="只放声音，选中文意思。听不清可以重复播放，目的是让耳朵习惯"+nm+"的节奏。";
+  if(phoneDesc) phoneDesc.textContent=l==="ja"?"先认清浊音、拗音和片假名，点一下就能听发音。":"学会音标，看到生词就能读个八九不离十。点一下听发音。";
+  if(lzDesc) lzDesc.textContent="30 秒，看"+nm+"词选中文，越快越准分越高。";
+  if(dictDesc) dictDesc.textContent=l==="ja"?"听句子，把空里的词写出来。可输入日文，系统会按日语字符判分。":"听句子，把空里的词写出来，练听音辨词和拼写。灰色块是首字母与长度提示。";
+  ["c-ielts","c-phases"].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=l==="ja"?"none":"";});
   document.title=ic+" "+nm+"星球 · 30分钟征服"+nm;
 }
 function chooseLang(l){
@@ -27550,6 +27715,7 @@ function bootApp(){
   if(WORDS.length) startBattle(1);
 }
 function init(){
+  organizeApp();
   THEME_MODE=localStorage.getItem("ep_theme")||"auto";
   applyTheme();
   const last=localStorage.getItem("ep_lang");
@@ -27570,8 +27736,9 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
         nw.addEventListener('statechange', function(){
           if(nw.state === 'installed' && navigator.serviceWorker.controller){
             var d = document.createElement('div');
+            d.className = 'update-toast';
             d.textContent = '发现新版本，点这里更新';
-            d.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:20px;z-index:99999;background:#5b6cf0;color:#fff;padding:11px 20px;border-radius:999px;font-size:13.5px;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.35);cursor:pointer';
+            d.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:20px;z-index:99999;background:#5b6cf0;color:#fff;padding:11px 20px;border-radius:999px;font-size:13.5px;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.35);cursor:pointer;white-space:nowrap';
             d.onclick = function(){ nw.postMessage('SKIP_WAITING'); setTimeout(function(){ location.reload(); }, 200); };
             document.body.appendChild(d);
           }
