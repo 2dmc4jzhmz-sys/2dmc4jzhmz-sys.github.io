@@ -42217,9 +42217,14 @@ function readVerdict(d, hi, mid, lo){
   return '<div class="rdtotal">总分 <b>'+d.total+'</b> · '+tip+'</div>';
 }
 // 语音识别错误统一转成用户能看懂的提示（重点：日语在部分浏览器不被支持，此前什么都不显示，像「没有评分功能」）
+function iosSpeechHint(){
+  const ua=navigator.userAgent||"";
+  if(!/iPhone|iPad|iPod/i.test(ua)) return "";
+  return " iPhone 提示：如果页面顶部有关闭 X/标题栏，这是 App 内嵌浏览器；请点右上角…→在 Safari 中打开。独立 PWA 窗口也可能不提供网页语音识别。";
+}
 function recErrMsg(ev){
   const e=(ev&&ev.error)||"";
-  if(e==="not-allowed"||e==="service-not-allowed") return "⚠️ 浏览器拒绝了语音识别请求。若麦克风已授权，通常是当前浏览器/页面来源不允许识别；请在 Safari/Chrome 的 https 页面重试。";
+  if(e==="not-allowed"||e==="service-not-allowed") return "⚠️ 浏览器拒绝了语音识别请求。若麦克风已授权，通常是当前浏览器/页面来源不允许识别；请在 Safari/Chrome 的 https 页面重试。"+iosSpeechHint();
   if(e==="language-not-supported"||e==="language-not-available") return CUR_LANG==="ja"
     ? "⚠️ 当前浏览器不支持日语语音识别。请换 Chrome / Edge 打开；或先用下面的「自评」记录。"
     : "⚠️ 当前浏览器不支持这种语言的语音识别，请换 Chrome / Edge 试试。";
@@ -42241,7 +42246,7 @@ function peerRateHtml(fbId,retryFn){
     (window._recRetry?' <button class="btn" onclick="_recRetry()">🔄 再试一次</button>':'');
 }
 function recUnavailableHtml(fbId){
-  return '<div class="ex">'+(recContextHint()||'当前容器不提供语音识别。电脑请用 Chrome / Edge，iPhone 请用 Safari 浏览器打开正式 PWA 地址。')+'</div>'+
+  return '<div class="ex">'+(recContextHint()||'当前容器不提供语音识别。电脑请用 Chrome / Edge，iPhone 请用 Safari 浏览器打开正式 PWA 地址。')+(iosSpeechHint()||'')+'</div>'+
     '<div style="margin-top:8px">'+peerRateHtml(fbId)+'</div>';
 }
 function peerScore(fbId,k){
