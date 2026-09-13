@@ -38696,7 +38696,8 @@ function listenShadow(){
     onUnsupported:()=>{ fb.innerHTML=recUnavailableHtml(fb.id); },
     onError:(ev)=>{ fb.innerHTML=recIssueHtml(fb.id,ev,'listenShadow'); micDiag(fb.id); },
     onNoResult:(why)=>{ fb.innerHTML=recIssueHtml(fb.id,{error:why||'no-speech'},'listenShadow'); micDiag(fb.id); },
-    onInterim:(t)=>{ fb.innerHTML='<span class="muted">🎙️ 听到：'+escapeHtml(t)+'</span>'; }
+    onInterim:(t)=>{ fb.innerHTML='<span class="muted">🎙️ 听到：'+escapeHtml(t)+'</span>'; },
+    onRetry:(n,m)=>{ fb.innerHTML='<span class="muted">🔄 识别重启中('+n+'/'+m+')… 请继续读这句</span>'; }
   });
 }
 window.listenPlay=listenPlay; window.listenNew=listenNew; window.lsAnswer=lsAnswer; window.listenShadow=listenShadow;
@@ -42222,6 +42223,7 @@ function iosSpeechHint(){
   if(!/iPhone|iPad|iPod/i.test(ua)) return "";
   return " iPhone 提示：如果页面顶部有关闭 X/标题栏，这是 App 内嵌浏览器；请点右上角…→在 Safari 中打开。独立 PWA 窗口也可能不提供网页语音识别。";
 }
+function isIOS(){ return /iPhone|iPad|iPod/i.test(navigator.userAgent||"") || (/(Macintosh)/.test(navigator.userAgent||"") && navigator.maxTouchPoints>1); }
 function recErrMsg(ev){
   const e=(ev&&ev.error)||"";
   if(e==="not-allowed"||e==="service-not-allowed") return "⚠️ 浏览器拒绝了语音识别请求。若麦克风已授权，通常是当前浏览器/页面来源不允许识别；请在 Safari/Chrome 的 https 页面重试。"+iosSpeechHint();
@@ -42294,7 +42296,8 @@ function recContextHint(){
   return "";
 }
 function recIssueHtml(fbId,ev,retryFn){
-  const msg=recContextHint()||recErrMsg(ev)||"⚠️ 语音识别被中断，请再试一次。";
+  let msg=recContextHint()||recErrMsg(ev)||"⚠️ 语音识别被中断，请再试一次。";
+  if(isIOS() && msg.indexOf("iPhone 提示")<0) msg+=iosSpeechHint();
   return '<div>'+msg+'</div><div style="margin-top:8px">'+peerRateHtml(fbId,retryFn)+'</div>';
 }
 // 通用录音：对 target 句子打分，通过回调返回结果
@@ -42302,11 +42305,17 @@ function recognizeAndScore(target, opts){
   opts=opts||{};
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){ opts.onUnsupported && opts.onUnsupported(); return null; }
-  if(_recording){ try{ _rec && _rec.stop(); }catch(e){} return null; }
-  try{
-    const r=new SR(); r.lang=LANG().rec; r.interimResults=true; r.continuous=false;
-    let _final=false, _interim=false, _errd=false, _timedOut=false, _watch=null;
-    const clearWatch=()=>{ if(_watch){ clearTimeout(_watch); _watch=null; } };
+  if(_recording){ window._recUserStop=true; try{ _rec && _rec.stop(); }catch(e){} return null; }
+  // iOS Safari 常见故障：start() 后静默 onend（无结果无错误，秒断）→ 自动重开最多 3 次
+  const MAXR=isIOS()?3:0;
+  let _final=false, _interim=false, _errd=false, _timedOut=false, _watch=null, _attempt=0;
+  const clearWatch=()=>{ if(_watch){ clearTimeout(_watch); _watch=null; } };
+  const startOnce=()=>{
+    if(_final||_errd||_timedOut) return;
+    let r;
+    try{
+      r=new SR(); r.lang=LANG().rec; r.interimResults=true; r.continuous=false;
+    }catch(e){ _recording=false; opts.onError && opts.onError({error:'start-failed'}); opts.onEnd && opts.onEnd(); return; }
     r.onresult=e=>{
       let rawTxt="", finalSeen=false;
       for(let i=e.resultIndex||0;i<e.results.length;i++){
@@ -42315,22 +42324,42 @@ function recognizeAndScore(target, opts){
         if(res.isFinal!==false) finalSeen=true;
       }
       if(finalSeen){            // 合并所有片段，避免 Safari 把最终结果放在第二段时只读到 interim
-        _final=true; clearWatch();
+        _final=true; clearWatch(); _recording=false;
         const d=scoreSpeech(rawTxt, target, (Date.now()-_recT0)/1000);
         opts.onResult && opts.onResult(rawTxt, d.total, d);
       } else { _interim=true; opts.onInterim && opts.onInterim(rawTxt); }
     };
-    r.onend=()=>{ clearWatch(); _recording=false; opts.onEnd && opts.onEnd(); if(!_final && !_errd && opts.onNoResult) opts.onNoResult(_interim?"interim":""); };
-    r.onerror=ev=>{ clearWatch(); _recording=false; _errd=true; if(_timedOut) return; opts.onError && opts.onError(ev); opts.onEnd && opts.onEnd(); };
-    _recording=true; _rec=r; _recT0=Date.now(); opts.onStart && opts.onStart(); r.start();
+    r.onend=()=>{
+      clearWatch();
+      if(_final||_errd||_timedOut){ _recording=false; return; }
+      if(window._recUserStop){ window._recUserStop=false; _recording=false; opts.onEnd && opts.onEnd(); if(!_final&&!_errd&&opts.onNoResult) opts.onNoResult("aborted"); return; }
+      if(!_interim && _attempt<MAXR){          // 静默秒断 → 自动重开
+        _attempt++; opts.onRetry && opts.onRetry(_attempt, MAXR);
+        setTimeout(()=>{ try{ startOnce(); }catch(e2){} }, 150);
+        return;
+      }
+      _recording=false; opts.onEnd && opts.onEnd();
+      if(!_final && !_errd && opts.onNoResult) opts.onNoResult(_interim?"interim":"no-speech");
+    };
+    r.onerror=ev=>{ clearWatch(); if(_timedOut){ _recording=false; return; } _errd=true; _recording=false; opts.onError && opts.onError(ev); opts.onEnd && opts.onEnd(); };
+    _recording=true; _rec=r;
+    if(_attempt===0){ _recT0=Date.now(); opts.onStart && opts.onStart(); }
+    try{ r.start(); }
+    catch(e){
+      if(_attempt<MAXR){ _attempt++; opts.onRetry && opts.onRetry(_attempt, MAXR); setTimeout(()=>{ try{ startOnce(); }catch(e2){} }, 250); }
+      else { _recording=false; opts.onError && opts.onError({error:'start-failed'}); opts.onEnd && opts.onEnd(); }
+      return;
+    }
     // 看门狗：部分环境（网络不通等）里识别会永远挂着——不报错也不结束，什么都不显示。
     // 8 秒无结果就自动兜底：给出超时提示 + 自评打分，保证「跟读必有反馈」。
     _watch=setTimeout(()=>{ _watch=null; if(_final||_errd||!_recording) return;
       _timedOut=true; try{ _rec&&_rec.abort(); }catch(e){}
       _recording=false; opts.onNoResult && opts.onNoResult("timeout");
     }, 8000);
-    return r;
-  }catch(e){ _recording=false; opts.onError && opts.onError({error:'start-failed'}); opts.onEnd && opts.onEnd(); return null; }
+  };
+  window._recUserStop=false;
+  startOnce();
+  return _rec;
 }
 window.scoreSpeech=scoreSpeech; window.speechScore=scoreSpeech; window.readScoreHtml=readScoreHtml; window.readVerdict=readVerdict; window.recognizeAndScore=recognizeAndScore;
 
@@ -42351,7 +42380,8 @@ function toggleRec(){
     onUnsupported:()=>{ document.getElementById("shFeedback").innerHTML=recUnavailableHtml("shFeedback"); },
     onError:(ev)=>{ document.getElementById("shFeedback").innerHTML=recIssueHtml("shFeedback",ev,"toggleRec"); micDiag("shFeedback"); },
     onNoResult:(why)=>{ document.getElementById("shFeedback").innerHTML=recIssueHtml("shFeedback",{error:why||'no-speech'},"toggleRec"); micDiag("shFeedback"); },
-    onInterim:(t)=>{ document.getElementById("shFeedback").innerHTML='<span class="muted">🎙️ 听到：'+escapeHtml(t)+'</span>'; }
+    onInterim:(t)=>{ document.getElementById("shFeedback").innerHTML='<span class="muted">🎙️ 听到：'+escapeHtml(t)+'</span>'; },
+    onRetry:(n,m)=>{ document.getElementById("shFeedback").innerHTML='<span class="muted">🔄 识别重启中('+n+'/'+m+')… 请继续读这句</span>'; }
   });
 }
 window.toggleRec=toggleRec;
@@ -42747,7 +42777,8 @@ function rdShadowRec(){
     onUnsupported:()=>{ fb.innerHTML=recUnavailableHtml(fb.id); },
     onError:(ev)=>{ fb.innerHTML=recIssueHtml(fb.id,ev,fb.id==='lsFeedback'?'listenShadow':'rdShadowRec'); micDiag(fb.id); },
     onNoResult:(why)=>{ fb.innerHTML=recIssueHtml(fb.id,{error:why||'no-speech'},fb.id==='lsFeedback'?'listenShadow':'rdShadowRec'); micDiag(fb.id); },
-    onInterim:(t)=>{ fb.innerHTML='<span class="muted">🎙️ 听到：'+escapeHtml(t)+'</span>'; }
+    onInterim:(t)=>{ fb.innerHTML='<span class="muted">🎙️ 听到：'+escapeHtml(t)+'</span>'; },
+    onRetry:(n,m)=>{ fb.innerHTML='<span class="muted">🔄 识别重启中('+n+'/'+m+')… 请继续读这句</span>'; }
   });
 }
 window.rdReadAll=rdReadAll; window.rdShadowPlay=rdShadowPlay; window.rdShadowNext=rdShadowNext; window.rdShadowRec=rdShadowRec;
