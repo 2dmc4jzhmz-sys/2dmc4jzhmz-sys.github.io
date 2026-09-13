@@ -42235,7 +42235,9 @@ function recErrMsg(ev){
   if(e==="interim") return "🎤 听到了一些声音但没能完整识别（网络不稳或发音被截断）。再试一次，或用下面自评记录。";
   if(e==="no-speech") return "🔇 没听到声音。靠近麦克风，先点🔊听一遍，再跟读一次。";
   if(e==="audio-capture") return "⚠️ 没检测到麦克风设备。";
-  if(e==="aborted") return "";
+  if(e==="aborted") return isIOS()
+    ? "⚠️ 语音识别被 iPhone 系统中断了。最常见原因：当前是「无痕浏览」标签页——无痕模式下 Safari 禁用语音识别，请点左下角标签页按钮切回普通标签页再打开本页；其次检查：设置 → Siri 与听写是否开启、设置 → Safari → 麦克风是否允许。"+iosSpeechHint()
+    : "";
   return "⚠️ 语音识别出了点问题（"+(e||"未知")+"），请再试一次。";
 }
 // 自评打分行：识别失败/不支持时的兜底 —— 保证「跟读有评分」永远可用
