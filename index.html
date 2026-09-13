@@ -576,6 +576,7 @@ th{color:var(--sub);font-weight:600;font-size:12px}
         <button class="btn ghost" onclick="shadowPlay(true)">🐢 慢速</button>
       </div>
       <div class="big-sentence" id="shSent"></div>
+      <div class="fcSub" id="shKana" style="text-align:center;margin:-4px 0 2px"></div>
       <div class="rdlzh" id="shZh" style="text-align:center;margin:-6px 0 10px"></div>
       <div class="keyrow">
         <button class="rec-btn" id="recBtn" onclick="toggleRec()">🎤 按住说，松手打分</button>
@@ -38674,7 +38675,7 @@ function listenShadow(){
   if(!lsCur){ listenNew(); return; }
   const target=lsCur[0], btn=document.getElementById("lsRecBtn"), fb=document.getElementById("lsFeedback");
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){ fb.innerHTML="当前浏览器不支持语音识别，iPhone 请用 Safari 打开"; return; }
+  if(!SR){ fb.innerHTML=recUnavailableHtml(fb.id); return; }
   recognizeAndScore(target,{
     onStart:()=>{ if(btn){btn.classList.add("rec"); btn.textContent="⏹ 停止";} fb.innerHTML='<span class="muted">🎙️ 正在听，请读出这句：'+escapeHtml(target)+'</span>'; },
     onEnd:()=>{ if(btn){btn.classList.remove("rec"); btn.textContent="🎤 跟读这句";} },
@@ -38685,8 +38686,9 @@ function listenShadow(){
       if(d.total>=80) addXP(2);
       sfx(d.total>=80?'ok':'no');
     },
-    onUnsupported:()=>{ fb.innerHTML="当前浏览器不支持语音识别，iPhone 请用 Safari 打开"; },
-    onError:(ev)=>{ if(ev&&(ev.error==='not-allowed'||ev.error==='service-not-allowed')) fb.innerHTML="⚠️ 请允许麦克风权限（设置→Safari→麦克风）"; }
+    onUnsupported:()=>{ fb.innerHTML=recUnavailableHtml(fb.id); },
+    onError:(ev)=>{ const m=recErrMsg(ev)||'⚠️ 语音识别被中断，请再试一次。'; fb.innerHTML='<div>'+m+'</div><div style="margin-top:8px">'+peerRateHtml(fb.id)+'</div>'; },
+    onNoResult:(why)=>{ fb.innerHTML='<div>'+recErrMsg({error:why||'no-speech'})+'</div><div style="margin-top:8px">'+peerRateHtml(fb.id)+'</div>'; }
   });
 }
 window.listenPlay=listenPlay; window.listenNew=listenNew; window.lsAnswer=lsAnswer; window.listenShadow=listenShadow;
@@ -42061,7 +42063,13 @@ function shEn(){ const x=SHADOWS[shIdx]; return Array.isArray(x)?(x[0]||""):Stri
 function shZh(){ const x=SHADOWS[shIdx]; return Array.isArray(x)?(x[1]||""):""; }
 function shadowPlay(slow){ speak(shEn(), slow?0.6:parseFloat(document.getElementById("rate").value)); }
 function shadowNext(play){ shIdx=(shIdx+1)%SHADOWS.length; shadowShow(); if(play) shadowPlay(); }
-function shadowShow(){ const e=document.getElementById("shSent"); if(e) e.textContent=shEn(); const z=document.getElementById("shZh"); if(z) z.textContent=shZh(); document.getElementById("shFeedback").innerHTML=""; }
+function shadowShow(){
+  if(!SHADOWS[shIdx]) shIdx=0;
+  const e=document.getElementById("shSent"); if(e) e.textContent=shEn();
+  const k=document.getElementById("shKana"); if(k) k.textContent=(CUR_LANG==="ja"&&shEn())? jaKanaOf(jaTokens(shEn())).join(" "):"";
+  const z=document.getElementById("shZh"); if(z) z.textContent=shZh();
+  document.getElementById("shFeedback").innerHTML="";
+}
 window.shadowPlay=shadowPlay; window.shadowNext=shadowNext;
 /* ============ 通用语音识别 & 跟读打分（影子跟读/听力/短文共用）============ */
 let _rec=null, _recording=false, _recT0=0;
@@ -42200,6 +42208,40 @@ function readVerdict(d, hi, mid, lo){
   else if(extra>0 && d.accuracy<90) tip='多了 '+extra+u+' · 照着原文读就行';
   return '<div class="rdtotal">总分 <b>'+d.total+'</b> · '+tip+'</div>';
 }
+// 语音识别错误统一转成用户能看懂的提示（重点：日语在部分浏览器不被支持，此前什么都不显示，像「没有评分功能」）
+function recErrMsg(ev){
+  const e=(ev&&ev.error)||"";
+  if(e==="not-allowed"||e==="service-not-allowed") return "⚠️ 请允许麦克风权限（设置→Safari→麦克风）";
+  if(e==="language-not-supported"||e==="language-not-available") return CUR_LANG==="ja"
+    ? "⚠️ 当前浏览器不支持日语语音识别。请换 Chrome / Edge 打开；或先用下面的「自评」记录。"
+    : "⚠️ 当前浏览器不支持这种语言的语音识别，请换 Chrome / Edge 试试。";
+  if(e==="network") return "⚠️ 语音识别需要联网，请检查网络后重试。";
+  if(e==="timeout") return "⏱️ 识别超时了（可能连不上语音服务）。可以直接自评记录，或稍后再试。";
+  if(e==="no-speech") return "🔇 没听到声音。靠近麦克风，先点🔊听一遍，再跟读一次。";
+  if(e==="audio-capture") return "⚠️ 没检测到麦克风设备。";
+  if(e==="aborted") return "";
+  return "⚠️ 语音识别出了点问题（"+(e||"未知")+"），请再试一次。";
+}
+// 自评打分行：识别失败/不支持时的兜底 —— 保证「跟读有评分」永远可用
+function peerRateHtml(fbId){
+  return '<span class="muted">跟读完这句，自评一个：</span> '+
+    '<button class="btn ghost" onclick="peerScore(\''+fbId+'\',3)">😄 读得很准</button> '+
+    '<button class="btn ghost" onclick="peerScore(\''+fbId+'\',2)">🙂 基本读对</button> '+
+    '<button class="btn ghost" onclick="peerScore(\''+fbId+'\',1)">😅 没读好</button>';
+}
+function recUnavailableHtml(fbId){
+  return '<div class="ex">当前浏览器不支持语音识别（电脑请用 Chrome / Edge，iPhone 请用 Safari）。</div>'+
+    '<div style="margin-top:8px">'+peerRateHtml(fbId)+'</div>';
+}
+function peerScore(fbId,k){
+  const s=S(); s.today.shadow=(s.today.shadow||0)+1;
+  const msg=k===3?"读得很准":(k===2?"基本读对":"没读好，多听几遍再回来");
+  const fb=document.getElementById(fbId);
+  if(fb) fb.innerHTML='<div class="rdtotal">已记录 · '+(k===3?"✅":(k===2?"🟡":"🔴"))+' '+msg+'</div>';
+  if(k===3) addXP(2); else if(k===2) addXP(1);
+  sfx(k>=2?"ok":"no"); save(); refreshTop(); renderErrCount();
+}
+window.peerScore=peerScore; window.recErrMsg=recErrMsg; window.recUnavailableHtml=recUnavailableHtml;
 // 通用录音：对 target 句子打分，通过回调返回结果
 function recognizeAndScore(target, opts){
   opts=opts||{};
@@ -42208,14 +42250,23 @@ function recognizeAndScore(target, opts){
   if(_recording){ try{ _rec && _rec.stop(); }catch(e){} return null; }
   try{
     const r=new SR(); r.lang=LANG().rec; r.interimResults=false; r.continuous=false;
+    let _got=false, _errd=false, _timedOut=false, _watch=null;
+    const clearWatch=()=>{ if(_watch){ clearTimeout(_watch); _watch=null; } };
     r.onresult=e=>{
+      _got=true; clearWatch();
       const rawTxt=e.results[0][0].transcript;
       const d=scoreSpeech(rawTxt, target, (Date.now()-_recT0)/1000);
       opts.onResult && opts.onResult(rawTxt, d.total, d);
     };
-    r.onend=()=>{ _recording=false; opts.onEnd && opts.onEnd(); };
-    r.onerror=ev=>{ _recording=false; opts.onError && opts.onError(ev); opts.onEnd && opts.onEnd(); };
+    r.onend=()=>{ clearWatch(); _recording=false; opts.onEnd && opts.onEnd(); if(!_got && !_errd && opts.onNoResult) opts.onNoResult(""); };
+    r.onerror=ev=>{ clearWatch(); _recording=false; _errd=true; if(_timedOut) return; opts.onError && opts.onError(ev); opts.onEnd && opts.onEnd(); };
     _recording=true; _rec=r; _recT0=Date.now(); opts.onStart && opts.onStart(); r.start();
+    // 看门狗：部分环境（网络不通等）里识别会永远挂着——不报错也不结束，什么都不显示。
+    // 8 秒无结果就自动兜底：给出超时提示 + 自评打分，保证「跟读必有反馈」。
+    _watch=setTimeout(()=>{ _watch=null; if(_got||_errd||!_recording) return;
+      _timedOut=true; try{ _rec&&_rec.abort(); }catch(e){}
+      _recording=false; opts.onNoResult && opts.onNoResult("timeout");
+    }, 8000);
     return r;
   }catch(e){ _recording=false; opts.onError && opts.onError({error:'start-failed'}); opts.onEnd && opts.onEnd(); return null; }
 }
@@ -42224,7 +42275,7 @@ window.scoreSpeech=scoreSpeech; window.speechScore=scoreSpeech; window.readScore
 function toggleRec(){
   const btn=document.getElementById("recBtn");
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){ document.getElementById("shFeedback").innerHTML="当前浏览器不支持语音识别，iPhone 请用 Safari 打开"; return; }
+  if(!SR){ document.getElementById("shFeedback").innerHTML=recUnavailableHtml("shFeedback"); return; }
   recognizeAndScore(shEn(),{
     onStart:()=>{ btn.classList.add("rec"); btn.textContent="⏹ 停止"; },
     onEnd:()=>{ btn.classList.remove("rec"); btn.textContent="🎤 跟读打分"; },
@@ -42235,8 +42286,9 @@ function toggleRec(){
       if(d.total>=80) addXP(2);
       sfx(d.total>=80?'ok':'no');
     },
-    onUnsupported:()=>{ document.getElementById("shFeedback").innerHTML="当前浏览器不支持语音识别，iPhone 请用 Safari 打开"; },
-    onError:(ev)=>{ if(ev&&(ev.error==='not-allowed'||ev.error==='service-not-allowed')) document.getElementById("shFeedback").innerHTML="⚠️ 请允许麦克风权限（设置→Safari→麦克风）"; }
+    onUnsupported:()=>{ document.getElementById("shFeedback").innerHTML=recUnavailableHtml("shFeedback"); },
+    onError:(ev)=>{ const m=recErrMsg(ev)||'⚠️ 语音识别被中断，请再试一次。'; document.getElementById("shFeedback").innerHTML='<div>'+m+'</div><div style="margin-top:8px">'+peerRateHtml("shFeedback")+'</div>'; },
+    onNoResult:(why)=>{ document.getElementById("shFeedback").innerHTML='<div>'+recErrMsg({error:why||'no-speech'})+'</div><div style="margin-top:8px">'+peerRateHtml("shFeedback")+'</div>'; }
   });
 }
 window.toggleRec=toggleRec;
@@ -42618,7 +42670,7 @@ function rdShadowRec(){
   const target=rdShadowSent[rdShadowIdx]; if(!target) return;
   const btn=document.getElementById('rdShBtn'), fb=document.getElementById('rdShFb');
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){ fb.innerHTML="当前浏览器不支持语音识别，iPhone 请用 Safari 打开"; return; }
+  if(!SR){ fb.innerHTML=recUnavailableHtml(fb.id); return; }
   recognizeAndScore(target,{
     onStart:()=>{ if(btn){btn.classList.add('rec'); btn.textContent='⏹ 停止';} fb.innerHTML='<span class="muted">🎙️ 正在听，请读出这句…</span>'; },
     onEnd:()=>{ if(btn){btn.classList.remove('rec'); btn.textContent='🎤 跟读打分';} },
@@ -42629,8 +42681,9 @@ function rdShadowRec(){
       if(d.total>=80) addXP(2);
       sfx(d.total>=80?'ok':'no');
     },
-    onUnsupported:()=>{ fb.innerHTML="当前浏览器不支持语音识别，iPhone 请用 Safari 打开"; },
-    onError:(ev)=>{ if(ev&&(ev.error==='not-allowed'||ev.error==='service-not-allowed')) fb.innerHTML="⚠️ 请允许麦克风权限（设置→Safari→麦克风）"; }
+    onUnsupported:()=>{ fb.innerHTML=recUnavailableHtml(fb.id); },
+    onError:(ev)=>{ const m=recErrMsg(ev)||'⚠️ 语音识别被中断，请再试一次。'; fb.innerHTML='<div>'+m+'</div><div style="margin-top:8px">'+peerRateHtml(fb.id)+'</div>'; },
+    onNoResult:(why)=>{ fb.innerHTML='<div>'+recErrMsg({error:why||'no-speech'})+'</div><div style="margin-top:8px">'+peerRateHtml(fb.id)+'</div>'; }
   });
 }
 window.rdReadAll=rdReadAll; window.rdShadowPlay=rdShadowPlay; window.rdShadowNext=rdShadowNext; window.rdShadowRec=rdShadowRec;
@@ -45400,6 +45453,10 @@ function applyLang(l){
   if(phoneDesc) phoneDesc.textContent=l==="ja"?"先认清浊音、拗音和片假名，点一下就能听发音。":"学会音标，看到生词就能读个八九不离十。点一下听发音。";
   if(lzDesc) lzDesc.textContent="30 秒，看"+nm+"词选中文，越快越准分越高。";
   if(dictDesc) dictDesc.textContent=l==="ja"?"听句子，把空里的词写出来。可输入日文，系统会按日语字符判分。":"听句子，把空里的词写出来，练听音辨词和拼写。灰色块是首字母与长度提示。";
+  const shadowDesc=document.querySelector("#c-shadow .desc");
+  if(shadowDesc) shadowDesc.innerHTML=l==="ja"
+    ?'先听，再照着说一遍。系统按<b>完整度 / 准确度 / 流利度</b>三项打分，漏读的词块会标红。日语按读音比对：识别成假名也能和汉字原文判准。'
+    :'先听，再照着说一遍。系统按<b>完整度 / 准确度 / 流利度</b>三项打分，漏读或读错的词会标红。发音进步最快的一招，听不清就把速度拉慢。';
   ["c-ielts","c-phases"].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=l==="ja"?"none":"";});
   document.title=ic+" "+nm+"星球 · 30分钟征服"+nm;
 }
