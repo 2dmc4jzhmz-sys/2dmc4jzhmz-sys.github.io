@@ -38687,8 +38687,9 @@ function listenShadow(){
       sfx(d.total>=80?'ok':'no');
     },
     onUnsupported:()=>{ fb.innerHTML=recUnavailableHtml(fb.id); },
-    onError:(ev)=>{ const m=recErrMsg(ev)||'⚠️ 语音识别被中断，请再试一次。'; fb.innerHTML='<div>'+m+'</div><div style="margin-top:8px">'+peerRateHtml(fb.id)+'</div>'; },
-    onNoResult:(why)=>{ fb.innerHTML='<div>'+recErrMsg({error:why||'no-speech'})+'</div><div style="margin-top:8px">'+peerRateHtml(fb.id)+'</div>'; }
+    onError:(ev)=>{ const m=recErrMsg(ev)||'⚠️ 语音识别被中断，请再试一次。'; fb.innerHTML='<div>'+m+'</div><div style="margin-top:8px">'+peerRateHtml(fb.id,fb.id==='lsFeedback'?'listenShadow':'rdShadowRec')+'</div>'; micDiag(fb.id); },
+    onNoResult:(why)=>{ fb.innerHTML='<div>'+recErrMsg({error:why||'no-speech'})+'</div><div style="margin-top:8px">'+peerRateHtml(fb.id,fb.id==='lsFeedback'?'listenShadow':'rdShadowRec')+'</div>'; micDiag(fb.id); },
+    onInterim:(t)=>{ fb.innerHTML='<span class="muted">🎙️ 听到：'+escapeHtml(t)+'</span>'; }
   });
 }
 window.listenPlay=listenPlay; window.listenNew=listenNew; window.lsAnswer=lsAnswer; window.listenShadow=listenShadow;
@@ -42217,17 +42218,20 @@ function recErrMsg(ev){
     : "⚠️ 当前浏览器不支持这种语言的语音识别，请换 Chrome / Edge 试试。";
   if(e==="network") return "⚠️ 语音识别需要联网，请检查网络后重试。";
   if(e==="timeout") return "⏱️ 识别超时了（可能连不上语音服务）。可以直接自评记录，或稍后再试。";
+  if(e==="interim") return "🎤 听到了一些声音但没能完整识别（网络不稳或发音被截断）。再试一次，或用下面自评记录。";
   if(e==="no-speech") return "🔇 没听到声音。靠近麦克风，先点🔊听一遍，再跟读一次。";
   if(e==="audio-capture") return "⚠️ 没检测到麦克风设备。";
   if(e==="aborted") return "";
   return "⚠️ 语音识别出了点问题（"+(e||"未知")+"），请再试一次。";
 }
 // 自评打分行：识别失败/不支持时的兜底 —— 保证「跟读有评分」永远可用
-function peerRateHtml(fbId){
+function peerRateHtml(fbId,retryFn){
+  window._recRetry = (retryFn && window[retryFn]) ? window[retryFn] : null;
   return '<span class="muted">跟读完这句，自评一个：</span> '+
     '<button class="btn ghost" onclick="peerScore(\''+fbId+'\',3)">😄 读得很准</button> '+
     '<button class="btn ghost" onclick="peerScore(\''+fbId+'\',2)">🙂 基本读对</button> '+
-    '<button class="btn ghost" onclick="peerScore(\''+fbId+'\',1)">😅 没读好</button>';
+    '<button class="btn ghost" onclick="peerScore(\''+fbId+'\',1)">😅 没读好</button>'+
+    (window._recRetry?' <button class="btn" onclick="_recRetry()">🔄 再试一次</button>':'');
 }
 function recUnavailableHtml(fbId){
   return '<div class="ex">当前浏览器不支持语音识别（电脑请用 Chrome / Edge，iPhone 请用 Safari）。</div>'+
@@ -42241,6 +42245,36 @@ function peerScore(fbId,k){
   if(k===3) addXP(2); else if(k===2) addXP(1);
   sfx(k>=2?"ok":"no"); save(); refreshTop(); renderErrCount();
 }
+// 麦克风诊断：识别没结果时，直接测一下麦克风有没有声音，把结论写给用户
+function micProbe(cb){
+  try{
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){ cb("unsupported"); return; }
+    navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+      try{
+        const c=ctx(), src=c.createMediaStreamSource(stream), an=c.createAnalyser();
+        an.fftSize=512; src.connect(an);
+        const buf=new Uint8Array(an.fftSize); let peak=0, n=0;
+        const tick=()=>{ try{ an.getByteTimeDomainData(buf); for(let i=0;i<buf.length;i++){ const v=Math.abs(buf[i]-128); if(v>peak) peak=v; } }catch(e){}
+          if(++n<16) setTimeout(tick,40); else { try{ stream.getTracks().forEach(t=>t.stop()); }catch(e2){} cb(peak>6?"sound":"silent"); } };
+        tick();
+      }catch(e){ try{ stream.getTracks().forEach(t=>t.stop()); }catch(e2){} cb("ok"); }
+    }).catch(function(err){ cb(err&&err.name==="NotAllowedError"?"denied":"nomic"); });
+  }catch(e){ cb("unsupported"); }
+}
+function micDiag(fbId){
+  try{ micProbe(function(res){
+    const el=document.getElementById(fbId); if(!el) return;
+    const line = res==="denied" ? "🔒 麦克风权限被拒绝：系统设置→隐私与安全性→麦克风，勾选你的浏览器后重试"
+      : res==="nomic" ? "🎤 没找到可用麦克风：检查系统设置的声音输入设备"
+      : res==="silent" ? "🎤 麦克风接入了但几乎没声音：说话声音大一点，或检查输入设备音量"
+      : res==="sound" ? "🎤 麦克风正常有声（识别服务没出结果，多半是网络连不上语音服务）"
+      : "";
+    if(!line) return;
+    const old=el.querySelector(".micdiag"); if(old) old.remove();
+    el.insertAdjacentHTML("afterbegin",'<div class="ex micdiag">'+line+'</div>');
+  }); }catch(e){}
+}
+window.micDiag=micDiag;
 window.peerScore=peerScore; window.recErrMsg=recErrMsg; window.recUnavailableHtml=recUnavailableHtml;
 // 通用录音：对 target 句子打分，通过回调返回结果
 function recognizeAndScore(target, opts){
@@ -42249,21 +42283,23 @@ function recognizeAndScore(target, opts){
   if(!SR){ opts.onUnsupported && opts.onUnsupported(); return null; }
   if(_recording){ try{ _rec && _rec.stop(); }catch(e){} return null; }
   try{
-    const r=new SR(); r.lang=LANG().rec; r.interimResults=false; r.continuous=false;
-    let _got=false, _errd=false, _timedOut=false, _watch=null;
+    const r=new SR(); r.lang=LANG().rec; r.interimResults=true; r.continuous=false;
+    let _final=false, _interim=false, _errd=false, _timedOut=false, _watch=null;
     const clearWatch=()=>{ if(_watch){ clearTimeout(_watch); _watch=null; } };
     r.onresult=e=>{
-      _got=true; clearWatch();
-      const rawTxt=e.results[0][0].transcript;
-      const d=scoreSpeech(rawTxt, target, (Date.now()-_recT0)/1000);
-      opts.onResult && opts.onResult(rawTxt, d.total, d);
+      const res=e.results[0], rawTxt=res[0].transcript;
+      if(res.isFinal!==false){            // isFinal 为 true/undefined（桩测试）都按最终结果处理
+        _final=true; clearWatch();
+        const d=scoreSpeech(rawTxt, target, (Date.now()-_recT0)/1000);
+        opts.onResult && opts.onResult(rawTxt, d.total, d);
+      } else { _interim=true; opts.onInterim && opts.onInterim(rawTxt); }
     };
-    r.onend=()=>{ clearWatch(); _recording=false; opts.onEnd && opts.onEnd(); if(!_got && !_errd && opts.onNoResult) opts.onNoResult(""); };
+    r.onend=()=>{ clearWatch(); _recording=false; opts.onEnd && opts.onEnd(); if(!_final && !_errd && opts.onNoResult) opts.onNoResult(_interim?"interim":""); };
     r.onerror=ev=>{ clearWatch(); _recording=false; _errd=true; if(_timedOut) return; opts.onError && opts.onError(ev); opts.onEnd && opts.onEnd(); };
     _recording=true; _rec=r; _recT0=Date.now(); opts.onStart && opts.onStart(); r.start();
     // 看门狗：部分环境（网络不通等）里识别会永远挂着——不报错也不结束，什么都不显示。
     // 8 秒无结果就自动兜底：给出超时提示 + 自评打分，保证「跟读必有反馈」。
-    _watch=setTimeout(()=>{ _watch=null; if(_got||_errd||!_recording) return;
+    _watch=setTimeout(()=>{ _watch=null; if(_final||_errd||!_recording) return;
       _timedOut=true; try{ _rec&&_rec.abort(); }catch(e){}
       _recording=false; opts.onNoResult && opts.onNoResult("timeout");
     }, 8000);
@@ -42287,8 +42323,9 @@ function toggleRec(){
       sfx(d.total>=80?'ok':'no');
     },
     onUnsupported:()=>{ document.getElementById("shFeedback").innerHTML=recUnavailableHtml("shFeedback"); },
-    onError:(ev)=>{ const m=recErrMsg(ev)||'⚠️ 语音识别被中断，请再试一次。'; document.getElementById("shFeedback").innerHTML='<div>'+m+'</div><div style="margin-top:8px">'+peerRateHtml("shFeedback")+'</div>'; },
-    onNoResult:(why)=>{ document.getElementById("shFeedback").innerHTML='<div>'+recErrMsg({error:why||'no-speech'})+'</div><div style="margin-top:8px">'+peerRateHtml("shFeedback")+'</div>'; }
+    onError:(ev)=>{ const m=recErrMsg(ev)||'⚠️ 语音识别被中断，请再试一次。'; document.getElementById("shFeedback").innerHTML='<div>'+m+'</div><div style="margin-top:8px">'+peerRateHtml("shFeedback","toggleRec")+'</div>'; micDiag("shFeedback"); },
+    onNoResult:(why)=>{ document.getElementById("shFeedback").innerHTML='<div>'+recErrMsg({error:why||'no-speech'})+'</div><div style="margin-top:8px">'+peerRateHtml("shFeedback","toggleRec")+'</div>'; micDiag("shFeedback"); },
+    onInterim:(t)=>{ document.getElementById("shFeedback").innerHTML='<span class="muted">🎙️ 听到：'+escapeHtml(t)+'</span>'; }
   });
 }
 window.toggleRec=toggleRec;
@@ -42682,8 +42719,9 @@ function rdShadowRec(){
       sfx(d.total>=80?'ok':'no');
     },
     onUnsupported:()=>{ fb.innerHTML=recUnavailableHtml(fb.id); },
-    onError:(ev)=>{ const m=recErrMsg(ev)||'⚠️ 语音识别被中断，请再试一次。'; fb.innerHTML='<div>'+m+'</div><div style="margin-top:8px">'+peerRateHtml(fb.id)+'</div>'; },
-    onNoResult:(why)=>{ fb.innerHTML='<div>'+recErrMsg({error:why||'no-speech'})+'</div><div style="margin-top:8px">'+peerRateHtml(fb.id)+'</div>'; }
+    onError:(ev)=>{ const m=recErrMsg(ev)||'⚠️ 语音识别被中断，请再试一次。'; fb.innerHTML='<div>'+m+'</div><div style="margin-top:8px">'+peerRateHtml(fb.id,fb.id==='lsFeedback'?'listenShadow':'rdShadowRec')+'</div>'; micDiag(fb.id); },
+    onNoResult:(why)=>{ fb.innerHTML='<div>'+recErrMsg({error:why||'no-speech'})+'</div><div style="margin-top:8px">'+peerRateHtml(fb.id,fb.id==='lsFeedback'?'listenShadow':'rdShadowRec')+'</div>'; micDiag(fb.id); },
+    onInterim:(t)=>{ fb.innerHTML='<span class="muted">🎙️ 听到：'+escapeHtml(t)+'</span>'; }
   });
 }
 window.rdReadAll=rdReadAll; window.rdShadowPlay=rdShadowPlay; window.rdShadowNext=rdShadowNext; window.rdShadowRec=rdShadowRec;
