@@ -1,5 +1,5 @@
 /* 英语星球 PWA Service Worker - 完全离线支持 */
-const CACHE_NAME = 'english-planet-v8';
+const CACHE_NAME = 'english-planet-v9';
 const CORE_ASSETS = [
   './',
   './index.html',
