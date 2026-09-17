@@ -37006,7 +37006,7 @@ let TOTAL_W=WORDS.length;
 
 /* ============ 双学习者档案 ============ */
 let STORE_KEY="english_planet_v1_en";
-function makeState(){ return {wx:{}, xp:0, lv:1, streak:0, lastDay:null, done:[], mastered:0, ach:{}, aiKey:"", diamond:0, collect:{}, best:0, err:{}, hist:{}, today:{date:null,learned:0,reviewed:0,quiz:0,listen:0,read:0,shadow:0}}; }
+function makeState(){ return {wx:{}, seen:{}, xp:0, lv:1, streak:0, lastDay:null, done:[], mastered:0, ach:{}, aiKey:"", diamond:0, collect:{}, best:0, err:{}, hist:{}, today:{date:null,learned:0,reviewed:0,quiz:0,listen:0,read:0,shadow:0}}; }
 let PROF=null, ACTIVE="adult";
 function loadProfiles(){
   const d=JSON.parse(localStorage.getItem(STORE_KEY)||"{}");
@@ -37192,10 +37192,45 @@ let recentWords=[];                       // 最近出过的词，用于避免�
 const RECENT_MAX=12;                      // 避让窗口：最近12个词不立刻再出
 
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
-// 常用词优先：词频排名越靠前(f 越小)越容易被排到前面，同时保留随机性
-function freqOrder(arr){
-  return arr.map(w=>({w, k:Math.random()*Math.sqrt((+(w.f)||99999)+60)}))
-            .sort((a,b)=>a.k-b.k).map(x=>x.w);
+/* ===== 内容调度：未出现过的优先（随机）→ 出现过的沉底 → 全部轮完再重新开始 =====
+   单词(w)/听句(s)/跟读句(sh)/短文(r)/同义替换(y) 共用；记「出现日」而不是布尔值，
+   全部出现过时按最久没出现的先来。 */
+function seenAt(bucket,key){ const s=(typeof PROF==="undefined"||!PROF)?null:S(); return (s&&s.seen&&s.seen[bucket+"|"+key])||0; }
+function markSeen(bucket,key){ const s=(typeof PROF==="undefined"||!PROF)?null:S(); if(!s) return;
+  if(!s.seen) s.seen={}; s.seen[bucket+"|"+key]=Math.floor(Date.now()/864e5)+1; }
+// 排序：未出现过的（内部随机）在前，出现过的按「最久没出现」排在后
+function orderUnseen(list, keyOf, bucket){
+  const s=(typeof PROF==="undefined"||!PROF)?null:S(); if(!s) return list.slice();
+  if(!s.seen) s.seen={};
+  const unseen=[], seen=[];
+  for(const x of list){ ((bucket+"|"+keyOf(x)) in s.seen) ? seen.push(x) : unseen.push(x); }
+  shuffle(unseen);
+  const ord=seen.map(x=>({x,t:s.seen[bucket+"|"+keyOf(x)]||0,r:Math.random()}))
+                 .sort((a,b)=>(a.t-b.t)||(a.r-b.r));
+  return unseen.concat(ord.map(o=>o.x));
+}
+// 取一个：未出现过的优先（随机）；全都出现过 → 从最久没出现的 10% 里随机；取出即记
+function pickFresh(list, keyOf, bucket){
+  if(!list||!list.length) return null;
+  const s=(typeof PROF==="undefined"||!PROF)?null:S();
+  let pick;
+  if(s){
+    if(!s.seen) s.seen={};
+    const fresh=list.filter(x=>!((bucket+"|"+keyOf(x)) in s.seen));
+    if(fresh.length) pick=fresh[Math.floor(Math.random()*fresh.length)];
+    else {   // 全部出现过 → 本轮学完，开新一轮：清掉本桶记录后随机取
+      for(const x of list) delete s.seen[bucket+"|"+keyOf(x)];
+      pick=list[Math.floor(Math.random()*list.length)];
+    }
+    markSeen(bucket,keyOf(pick));
+  } else pick=list[Math.floor(Math.random()*list.length)];
+  return pick;
+}
+// 同上，但返回下标（跟读句/短文按索引渲染）
+function pickIdxFresh(list, keyOf, bucket){
+  const idxs=list.map((_,i)=>i);
+  const i=pickFresh(idxs, i=>keyOf(list[i]), bucket);
+  return i==null?0:i;
 }
 // 出题队列：到期复习词 > 新词；同一词一轮只出现一次；错词均匀穿插（不再连续堆开头）
 function buildPool(lvl){
@@ -37204,7 +37239,8 @@ function buildPool(lvl){
   const fresh=ws.filter(w=>wstate(w.w).box===0);
   // 到期复习词与新词交替出现（原来二者混排随机，复习词在万级新词中被淹没 →「补旧词」永远完不成）
   // 注意：nextQ() 用 shift() 从队首取词，所以队首必须是「最常用」的词 —— 从头按索引交替拼接
-  const dq=freqOrder([...due]), fq=freqOrder([...fresh]);
+  // 已学过的到期词：随机；未学过的新词：未出现过的优先 + 随机（不再按词频排，否则每次开局都是同一批高频词）
+  const dq=shuffle([...due]), fq=orderUnseen([...fresh], w=>w.w, "w");
   let base=[]; { let di=0, fi=0;
     while(di<dq.length||fi<fq.length){
       if(di<dq.length) base.push(dq[di++]);
@@ -37261,7 +37297,7 @@ function nextQ(){
     if(idx>0){ const [w]=sessionPool.splice(idx,1); sessionPool.push(w); }
   }
   const qw=sessionPool.shift();
-  if(qw){ recentWords.push(qw.w); if(recentWords.length>RECENT_MAX) recentWords.shift(); }
+  if(qw){ markSeen("w", qw.w); recentWords.push(qw.w); if(recentWords.length>RECENT_MAX) recentWords.shift(); }
   Q={word:qw, opts:[qw,...distractor(qw)].sort(()=>Math.random()-0.5), answered:false};
   renderQ();
 }
@@ -38639,10 +38675,8 @@ const SENTENCES_EN=[
 ];
 let lsCur=null, lsLocked=false, lsPrev=null;
 function listenNew(){
-  // 避免与上一句相同
-  let c, pickGuard=0;
-  do { c=SENTENCES[Math.floor(Math.random()*SENTENCES.length)]; pickGuard++; }
-  while(lsPrev && c[0]===lsPrev[0] && pickGuard<30 && SENTENCES.length>1);
+  // 没听过的优先（随机）；全部听过再按最久没听的循环
+  const c=pickFresh(SENTENCES, s=>String(s[0]), "s")||SENTENCES[0];
   lsCur=c; lsPrev=c;
   lsLocked=false;
   document.getElementById("lsFeedback").innerHTML="";
@@ -42071,9 +42105,10 @@ let shIdx=0;
 function shEn(){ const x=SHADOWS[shIdx]; return Array.isArray(x)?(x[0]||""):String(x||""); }
 function shZh(){ const x=SHADOWS[shIdx]; return Array.isArray(x)?(x[1]||""):""; }
 function shadowPlay(slow){ speak(shEn(), slow?0.6:parseFloat(document.getElementById("rate").value)); }
-function shadowNext(play){ shIdx=(shIdx+1)%SHADOWS.length; shadowShow(); if(play) shadowPlay(); }
+function shadowNext(play){ shIdx=pickIdxFresh(SHADOWS, x=>String(Array.isArray(x)?x[0]:x), "sh"); shadowShow(); if(play) shadowPlay(); }
 function shadowShow(){
   if(!SHADOWS[shIdx]) shIdx=0;
+  markSeen("sh", String(Array.isArray(SHADOWS[shIdx])?SHADOWS[shIdx][0]:SHADOWS[shIdx]));
   const e=document.getElementById("shSent"); if(e) e.textContent=shEn();
   const k=document.getElementById("shKana"); if(k) k.textContent=(CUR_LANG==="ja"&&shEn())? jaKanaOf(jaTokens(shEn())).join(" "):"";
   const z=document.getElementById("shZh"); if(z) z.textContent=shZh();
@@ -42700,12 +42735,8 @@ function splitSentences(text){
 }
 function rdLevelOf(i){ return i<400?"A2 入门":(i<800?"B1 进阶":"B2 雅思向"); }
 function rdGo(d){
-  const oldTitle=(READINGS[rdIdx]||{}).t; let guard=0;
-  do{
-    if(d===0) rdIdx=Math.floor(Math.random()*READINGS.length);
-    else rdIdx=(rdIdx+d+READINGS.length)%READINGS.length;
-    guard++;
-  }while(READINGS.length>1&&(READINGS[rdIdx]||{}).t===oldTitle&&guard<READINGS.length);
+  // 没读过的优先（随机）；全部读过再按最久没读的循环（参数 d 仅为兼容旧调用）
+  rdIdx=pickIdxFresh(READINGS, r=>String(r.t), "r");
   S().rd=rdIdx; save(); renderReading();
 }
 window.rdGo=rdGo;
@@ -42724,6 +42755,7 @@ function rdLinesHtml(r){
 function renderReading(){
   const s=S(); if(typeof s.rd==="number" && s.rd>=0 && s.rd<READINGS.length) rdIdx=s.rd;
   const r=READINGS[rdIdx]; if(!r) return;
+  markSeen("r", String(r.t));
   rdBusy=false;
   if(rdShadowOf!==rdIdx){ rdShadowSent=splitSentences(r.body); rdShadowIdx=0; rdShadowOf=rdIdx; }
   const pos=document.getElementById("rdPos"); if(pos) pos.textContent="第 "+(rdIdx+1)+" / "+READINGS.length+" 篇 · "+rdLevelOf(rdIdx);
@@ -42959,8 +42991,8 @@ function flashStart(){
   const dueSet=new Set(dueWords().map(w=>w.w));
   const due=WORDS.filter(w=>dueSet.has(w.w));
   const fresh=WORDS.filter(w=>!dueSet.has(w.w) && (wstate(w.w).box||0)<4);
-  freqOrder(due.slice()).forEach(w=>{ if(q.length<need&&!seen.has(w.w)){ seen.add(w.w); q.push(w); } });
-  freqOrder(shuffle(fresh.slice()).slice(0,800)).forEach(w=>{ if(q.length<need&&!seen.has(w.w)){ seen.add(w.w); q.push(w); } });
+  shuffle(due.slice()).forEach(w=>{ if(q.length<need&&!seen.has(w.w)){ seen.add(w.w); q.push(w); } });
+  orderUnseen(fresh, w=>w.w, "w").forEach(w=>{ if(q.length<need&&!seen.has(w.w)){ seen.add(w.w); q.push(w); } });
   if(!q.length) q.push.apply(q, shuffle(WORDS.slice()).slice(0,need));
   flashQ=q; flashI=0; flashStat={ok:0,mid:0,no:0};
   flashRender();
@@ -42977,6 +43009,7 @@ function flashRender(){
     return;
   }
   const w=flashQ[flashI];
+  markSeen("w", w.w);                     // 翻到的卡算「出现过」，下一组不再重复抽
   document.getElementById('fcWord').textContent=w.w;
   document.getElementById('fcSub').textContent=[w.ph,w.pos].filter(Boolean).join(' · ')||LANG().name;
   back.style.display='none'; back.innerHTML='';
@@ -45266,9 +45299,9 @@ let SYN=null, synCur=null, dictCur=null, dictBlank=null;
 /* ============ 听力填空 / 听写 ============ */
 const DICT_STOP=new Set(["the","a","an","and","or","but","that","this","these","those","with","from","they","were","have","has","had","will","would","should","could","been","are","is","was","for","not","what","when","which","there","here","very","more","most","some","many","much","than","then","into","over","after","before","about","also","each","such","just","like","your","our","their","you","we","he","she","it","to","of","in","on","at","by","as","so","if","out","up","down","off","my","me","us","them","his","her"]);
 function dictateNew(){
-  let tries=0; dictCur=null; dictBlank=null;
+  dictCur=null; dictBlank=null;
   if(CUR_LANG==="ja"){
-    dictCur=SENTENCES[Math.floor(Math.random()*SENTENCES.length)][0];
+    dictCur=(pickFresh(SENTENCES, s=>String(s[0]), "s")||SENTENCES[0])[0];
     let cands=WORDS.filter(w=>w.w&&[...w.w].length<=7&&dictCur.includes(w.w));
     if(cands.length) dictBlank={w:cands[Math.floor(Math.random()*cands.length)].w,ja:true};
     else{
@@ -45277,11 +45310,13 @@ function dictateNew(){
       dictBlank={w:chars.slice(start,start+len).join(""),ja:true};
     }
     const at=dictCur.indexOf(dictBlank.w), hint=[...dictBlank.w][0]+"＿".repeat(Math.max(1,[...dictBlank.w].length-1));
+    markSeen("s", dictCur);
     document.getElementById('dictSent').innerHTML=escapeHtml(dictCur.slice(0,at))+'<span class="bl">'+escapeHtml(hint)+'</span>'+escapeHtml(dictCur.slice(at+dictBlank.w.length));
     document.getElementById('dictIn').value=''; document.getElementById('dictFb').innerHTML=''; speak(dictCur); return;
   }
-  while(tries++<60){
-    const c=SENTENCES[Math.floor(Math.random()*SENTENCES.length)][0];
+  const _ord=orderUnseen(SENTENCES, s=>String(s[0]), "s");
+  for(const _c of _ord){
+    const c=String(_c[0]);
     const words=c.split(/\s+/); const cands=[];
     for(let i=1;i<words.length;i++){
       const lw=letters(words[i]);                 // 语言无关：只留字母（含日汉/假名）
@@ -45289,7 +45324,8 @@ function dictateNew(){
     }
     if(cands.length){ dictCur=c; dictBlank=cands[Math.floor(Math.random()*cands.length)]; break; }
   }
-  if(!dictCur){ const c=SENTENCES[0][0]; const ws=c.split(/\s+/); const lw=letters(ws[ws.length-1]); dictCur=c; dictBlank={i:ws.length-1,w:lw||ws[ws.length-1]}; }
+  if(!dictCur){ const c0=_ord[0]||SENTENCES[0]; const c=String(c0[0]); const ws=c.split(/\s+/); const lw=letters(ws[ws.length-1]); dictCur=c; dictBlank={i:ws.length-1,w:lw||ws[ws.length-1]}; }
+  markSeen("s", dictCur);
   const words=dictCur.split(/\s+/);
   const hint=dictBlank.w[0]+'_'.repeat(Math.max(2,dictBlank.w.length-1));
   const shown=words.map((w,i)=> i===dictBlank.i ? '<span class="bl">'+hint+'</span>' : escapeHtml(w)).join(' ');
@@ -45320,7 +45356,7 @@ window.dictateNew=dictateNew; window.dictateCheck=dictateCheck;
 function synNew(){
   const box=document.getElementById('synWrap');
   if(!SYN || !SYN.length){ if(box) box.innerHTML='<p class="desc">当前语言暂无同义替换题库。</p>'; return; }
-  synCur=SYN[Math.floor(Math.random()*SYN.length)];
+  synCur=pickFresh(SYN, x=>String(x.w)+"|"+String(x.s), "y")||SYN[0];
   const opts=shuffle([synCur.s].concat(synCur.d||[]));
   document.getElementById('synWord').textContent=synCur.w;
   document.getElementById('synEx').textContent='例句：'+synCur.ex;
@@ -45356,8 +45392,8 @@ function chainReading(raw){ const w=chainWord(raw); return letters(CUR_LANG==="j
 /* ---- 单词接龙 ---- */
 function chainNew(){
   chainUsed=[];
-  let w=WORDS[Math.floor(Math.random()*WORDS.length)],guard=0;
-  while(CUR_LANG==="ja"&&chainReading(w.w).endsWith("ん")&&guard++<50) w=WORDS[Math.floor(Math.random()*WORDS.length)];
+  let w=pickFresh(WORDS, x=>x.w, "w")||WORDS[0], guard=0;
+  while(CUR_LANG==="ja"&&chainReading(w.w).endsWith("ん")&&guard++<50) w=pickFresh(WORDS, x=>x.w, "w")||WORDS[0];
   chainCur=w.w; chainUsed.push(letters(w.w));
   document.getElementById('chainCur').textContent=w.w+(CUR_LANG==="ja"&&w.ph?"（"+w.ph+"）":"");
   document.getElementById('chainIn').value='';
@@ -45390,12 +45426,14 @@ window.chainNew=chainNew; window.chainSubmit=chainSubmit;
 function scNew(){
   let c=null;
   if(CUR_LANG==="ja"){
-    for(let t=0;t<40;t++){
-      const s=SENTENCES[Math.floor(Math.random()*SENTENCES.length)][0];
+    const _ord=orderUnseen(SENTENCES, s=>String(s[0]), "s");
+    for(const _x of _ord){
+      const s=String(_x[0]);
       const n=jaTokens(s).length;
       if(n>=3 && n<=9){ c=s; break; }
     }
-    if(!c) c=SENTENCES[Math.floor(Math.random()*SENTENCES.length)][0];
+    if(!c) c=String((_ord[0]||SENTENCES[0])[0]);
+    markSeen("s", c);
     scSent=c; scAns=[];
     const toks=jaTokens(c);
     let sj; do { sj=shuffle(toks.slice()); } while(sj.join('')===toks.join('') && toks.length>1);
@@ -45404,12 +45442,14 @@ function scNew(){
     document.getElementById('scFb').innerHTML='<span class="muted">点下面词块，按顺序拼成原句</span>';
     return;
   }
-  for(let t=0;t<30;t++){
-    const s=SENTENCES[Math.floor(Math.random()*SENTENCES.length)][0];
+  const _ordE=orderUnseen(SENTENCES, s=>String(s[0]), "s");
+  for(const _x of _ordE){
+    const s=String(_x[0]);
     const n=s.split(/\s+/).length;
     if(n>=5 && n<=11){ c=s; break; }
   }
-  if(!c) c=SENTENCES[0][0];
+  if(!c) c=String((_ordE[0]||SENTENCES[0])[0]);
+  markSeen("s", c);
   scSent=c; scAns=[];
   const toks=c.split(/\s+/);
   let sh; do { sh=shuffle(toks.slice()); } while(sh.join(' ')===toks.join(' ') && toks.length>1);
@@ -45453,10 +45493,7 @@ function lzStart(){
   lzTimer=setInterval(()=>{ lzLeft--; document.getElementById('lzTime').textContent=lzLeft; if(lzLeft<=0) lzEnd(); },1000);
 }
 function lzNext(){
-  // 避免与上一题同一个单词
-  let w, guard=0;
-  do { w=WORDS[Math.floor(Math.random()*WORDS.length)]; guard++; }
-  while(lzQ && w.w===lzQ.w && guard<30);
+  const w=pickFresh(WORDS, x=>x.w, "w")||WORDS[0];
   const seen=new Set([w.zh]); const others=[];
   let g=0; while(others.length<3 && g++<400){ const c=WORDS[Math.floor(Math.random()*WORDS.length)].zh; if(c && !seen.has(c)){ seen.add(c); others.push(c); } }
   const opts=shuffle([w.zh].concat(others));
@@ -45485,11 +45522,11 @@ window.lzStart=lzStart; window.lzAnswer=lzAnswer;
 /* ---- 词义翻翻乐 ---- */
 let matchDeck=[], matchOpen=[], matchMoves=0, matchPairs=0, matchLock=false;
 function matchStart(){
-  const used=new Set(), usedZh=new Set(), pairs=[]; let guard=0;
-  while(pairs.length<6 && guard++<500){
-    const w=WORDS[Math.floor(Math.random()*WORDS.length)];
+  const used=new Set(), usedZh=new Set(), pairs=[];
+  for(const w of orderUnseen(WORDS, x=>x.w, "w")){
+    if(pairs.length>=6) break;
     if(!w||!w.w||!w.zh||used.has(w.w)||usedZh.has(w.zh)) continue;
-    used.add(w.w); usedZh.add(w.zh); pairs.push(w);
+    used.add(w.w); usedZh.add(w.zh); pairs.push(w); markSeen("w", w.w);
   }
   matchDeck=shuffle(pairs.flatMap((w,i)=>[{id:i,text:w.w,kind:"word",done:false},{id:i,text:w.zh,kind:"meaning",done:false}]));
   matchOpen=[]; matchMoves=0; matchPairs=0; matchLock=false;
@@ -45538,6 +45575,7 @@ function applyLang(l){
   flashQ=[]; flashI=0; flashStat={ok:0,mid:0,no:0}; vcQ=[]; vcI=0; vcRight=0; vcLvl={}; jaSetReset();
   if(lzTimer) clearInterval(lzTimer); lzTimer=null; lzActive=false; lzQ=null;
   rdShadowSent=[]; rdShadowIdx=0; rdShadowOf=-1; recentWords=[]; sessionPool=[];
+  shIdx=SHADOWS.length?Math.floor(Math.random()*SHADOWS.length):0;
   const nm=LANG().name, ic=LANG().icon;
   document.getElementById("logoName").textContent=nm;
   document.getElementById("logoIcon").textContent=ic;
