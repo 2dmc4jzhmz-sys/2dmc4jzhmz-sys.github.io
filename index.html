@@ -454,6 +454,11 @@ th{color:var(--sub);font-weight:600;font-size:12px}
       <div id="fcBack" class="fcback" style="display:none"></div>
       <p class="muted" id="fcMeta">—</p>
       <div class="keyrow" style="justify-content:center">
+        <button class="round-btn" onclick="if(flashQ[flashI])speak(flashQ[flashI].w)">🔊</button>
+        <button class="btn ghost" onclick="if(flashQ[flashI])voiceScore(flashQ[flashI].w,'fcVc')">🎤 读这个词打分</button>
+      </div>
+      <div class="feedback" id="fcVc"></div>
+      <div class="keyrow" style="justify-content:center">
         <button class="btn" onclick="flashStart()">🎲 抽 20 张</button>
         <button class="btn ghost" onclick="flashRate(1)">✅ 认识</button>
         <button class="btn ghost" onclick="flashRate(2)">🤔 模糊</button>
@@ -474,6 +479,11 @@ th{color:var(--sub);font-weight:600;font-size:12px}
       <div class="big-sentence" id="vcWord">点开始测评</div>
       <div class="opts" id="vcOpts"></div>
       <div class="feedback" id="vcFb"></div>
+      <div class="keyrow" style="justify-content:center">
+        <button class="round-btn" onclick="if(vcQ[vcI])speak(vcQ[vcI].w)">🔊</button>
+        <button class="btn ghost" onclick="if(vcQ[vcI])voiceScore(vcQ[vcI].w,'vcVc')">🎤 读这个词打分</button>
+      </div>
+      <div class="feedback" id="vcVc"></div>
       <p class="muted" id="vcMeta">—</p>
       <div class="keyrow" style="justify-content:center">
         <button class="btn" onclick="vcStart()">▶ 开始测评（30 题）</button>
@@ -523,6 +533,11 @@ th{color:var(--sub);font-weight:600;font-size:12px}
         <button class="round-btn" onclick="chainNew()" title="重开">🔄</button>
       </div>
       <div class="feedback" id="chainFb"></div>
+      <div class="keyrow" style="justify-content:center">
+        <button class="round-btn" onclick="speak(chainCur)">🔊</button>
+        <button class="btn ghost" onclick="voiceScore(chainCur,'chainVc')">🎤 读这个词打分</button>
+      </div>
+      <div class="feedback" id="chainVc"></div>
     </div>
 
     <div class="card" id="c-lz">
@@ -537,6 +552,11 @@ th{color:var(--sub);font-weight:600;font-size:12px}
       <div class="opts" id="lzOpts"></div>
       <div class="feedback" id="lzOver"></div>
       <div class="keyrow" style="justify-content:center">
+        <button class="round-btn" onclick="if(lzQ)speak(lzQ.w)">🔊</button>
+        <button class="btn ghost" onclick="if(lzQ)voiceScore(lzQ.w,'lzVc')">🎤 读这个词打分</button>
+      </div>
+      <div class="feedback" id="lzVc"></div>
+      <div class="keyrow" style="justify-content:center">
         <button class="btn" onclick="lzStart()">▶ 开始 30 秒</button>
       </div>
     </div>
@@ -547,6 +567,11 @@ th{color:var(--sub);font-weight:600;font-size:12px}
       <div class="match-head"><span class="muted" id="matchStat">点击开始新一局</span><button class="btn" onclick="matchStart()">新一局</button></div>
       <div class="match-grid" id="matchGrid"></div>
       <div class="feedback" id="matchFb"></div>
+      <div class="keyrow" style="justify-content:center">
+        <button class="round-btn" onclick="speak(matchLast)">🔊</button>
+        <button class="btn ghost" onclick="voiceScore(matchLast,'matchVc')">🎤 读这个词打分</button>
+      </div>
+      <div class="feedback" id="matchVc"></div>
     </div>
   </section>
 
@@ -592,6 +617,7 @@ th{color:var(--sub);font-weight:600;font-size:12px}
       <div class="keyrow">
         <button class="round-btn" onclick="dictateNew()" title="重听本句">🔊</button>
         <button class="btn ghost" onclick="dictateNew()">换一句</button>
+        <button class="btn ghost" onclick="voiceScore(dictCur,'dictVc')">🎤 读整句打分</button>
       </div>
       <div class="big-sentence" id="dictSent">点「换一句」开始</div>
       <div class="keyrow">
@@ -599,6 +625,7 @@ th{color:var(--sub);font-weight:600;font-size:12px}
         <button class="btn" onclick="dictateCheck()">检查</button>
       </div>
       <div class="feedback" id="dictFb"></div>
+      <div class="feedback" id="dictVc"></div>
     </div>
   </section>
 
@@ -628,6 +655,11 @@ th{color:var(--sub);font-weight:600;font-size:12px}
         <p class="muted" id="synEx"></p>
         <div class="opts" id="synOpts"></div>
         <div class="feedback" id="synFb"></div>
+        <div class="keyrow" style="justify-content:center">
+          <button class="round-btn" onclick="if(synCur)speak(synCur.ex||synCur.w)">🔊</button>
+          <button class="btn ghost" onclick="if(synCur)voiceScore(synCur.ex||synCur.w,'synVc')">🎤 读例句打分</button>
+        </div>
+        <div class="feedback" id="synVc"></div>
       </div>
       <div class="keyrow" style="justify-content:center">
         <button class="btn ghost" onclick="synNew()">换一题</button>
@@ -640,6 +672,11 @@ th{color:var(--sub);font-weight:600;font-size:12px}
       <div id="scBank"></div>
       <div id="scAns"></div>
       <div class="feedback" id="scFb"></div>
+      <div class="keyrow" style="justify-content:center">
+        <button class="round-btn" onclick="if(scSent)speak(scSent)">🔊</button>
+        <button class="btn ghost" onclick="if(scSent)voiceScore(scSent,'scVc')">🎤 读整句打分</button>
+      </div>
+      <div class="feedback" id="scVc"></div>
       <div class="keyrow" style="justify-content:center">
         <button class="btn ghost" onclick="scNew()">换一句</button>
       </div>
@@ -667,11 +704,15 @@ th{color:var(--sub);font-weight:600;font-size:12px}
       <div class="ch"><span class="ci">🔤</span><h2 id="abcTitle">字母</h2></div>
       <p class="desc">零基础从这里开始。点任意一个都会发音。</p>
       <div class="abc" id="abcGrid"></div>
+      <div class="keyrow" style="justify-content:center"><button class="round-btn" onclick="speak(abcLast)">🔊</button><button class="btn ghost" onclick="voiceScore(abcLast,'abcVc')">🎤 读一遍打分</button></div>
+      <div class="feedback" id="abcVc"></div>
     </div>
     <div class="card" id="c-pho">
       <div class="ch"><span class="ci">🔊</span><h2 id="phoTitle">音标</h2></div>
       <p class="desc">学会音标，看到生词就能读个八九不离十。点一下听发音。</p>
       <div class="phoGrid" id="phoGrid"></div>
+      <div class="keyrow" style="justify-content:center"><button class="round-btn" onclick="speak(phoLast)">🔊</button><button class="btn ghost" onclick="voiceScore(phoLast,'phoVc')">🎤 读一遍打分</button></div>
+      <div class="feedback" id="phoVc"></div>
     </div>
     <div class="card" id="c-phonics">
       <div class="ch"><span class="ci">📖</span><h2 id="phgTitle">拼读规则</h2></div>
@@ -37072,8 +37113,9 @@ function renderErr(){
   const arr=Object.keys(s.err||{}).map(k=>({k,e:s.err[k]})).filter(x=>x.e);
   arr.sort((a,b)=> (b.e.err/(b.e.err+b.e.ok+1)) - (a.e.err/(a.e.err+a.e.ok+1)));
   if(!arr.length){ box.innerHTML='<p class="desc">还没有错词。答错会自动收进来。</p>'; return; }
-  box.innerHTML=arr.map(function(it){
+  box.innerHTML=arr.map(function(it,_i){
     const k=it.k, e=it.e;
+    const rd=(String(k).indexOf("|")<0 && String(k).length<=140 && String(k).length>0);
     const pct=Math.max(0,Math.min(100,Math.round(e.ok/3*100)));
     return '<div class="errItem" style="border:1px solid var(--ring);border-radius:12px;padding:11px 13px;margin-bottom:9px">'+
       '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center">'+
@@ -37081,7 +37123,10 @@ function renderErr(){
       '<button class="btn ghost" style="padding:4px 10px;font-size:12px" data-k="'+escapeHtml(k)+'" onclick="errDrop(this.dataset.k)">删除</button></div>'+
       '<div style="margin-top:7px;height:6px;background:var(--ring);border-radius:4px;overflow:hidden">'+
       '<i style="display:block;height:100%;width:'+pct+'%;background:var(--ok)"></i></div>'+
-      '<div class="muted" style="font-size:12px;margin-top:4px">答错 '+e.err+' 次 · 连对 '+e.ok+'/3 毕业</div></div>';
+      '<div class="muted" style="font-size:12px;margin-top:4px">答错 '+e.err+' 次 · 连对 '+e.ok+'/3 毕业</div>'+
+      (rd?('<div class="keyrow" style="margin-top:6px"><button class="round-btn" onclick="speak(this.dataset.w)" data-w="'+escapeHtml(k)+'">🔊</button>'+
+           '<button class="btn ghost" onclick="voiceScore(this.dataset.w,\'errV'+_i+'\')" data-w="'+escapeHtml(k)+'">🎤 打分</button></div>'+
+           '<div class="feedback" id="errV'+_i+'"></div>'):'')+'</div>';
   }).join('');
 }
 function renderErrCount(){
@@ -37310,7 +37355,7 @@ function renderQ(){
       <div class="qpho" style="margin-top:6px;letter-spacing:3px">${CUR_LANG==="ja"
         ? (Q.word.ph[0]+'·'.repeat(Math.max(0,Q.word.ph.length-1))+LANG().spTip(Q.word.ph.length)+'　输入假名或罗马音')
         : (w.w[0].toUpperCase()+'·'.repeat(w.w.length-1)+LANG().spTip(w.w.length))}</div>
-      <button class="round-btn" onclick="speak(this.dataset.w)" data-w="${escapeHtml(w.w)}">🔊</button>
+      <button class="round-btn" onclick="speak(this.dataset.w)" data-w="${escapeHtml(w.w)}">🔊</button> <button class="btn ghost" onclick="voiceScore(Q.word.w,'fb')">🎤 读一遍打分</button>
       <div style="margin-top:12px"><input class="typing" id="spIn" placeholder="${CUR_LANG==="ja"?"用罗马音或假名拼出这个词的读音":"拼出这个单词"}" onkeydown="if(event.key==='Enter')checkSp()"></div>
       <button class="btn" style="margin-top:10px" onclick="checkSp()">提交</button><div class="feedback" id="fb"></div>`;
     document.getElementById("spIn").focus();
@@ -37325,7 +37370,7 @@ function renderQ(){
     };
     b.innerHTML=`<div class="qword">${escapeHtml(qText)}</div>
       <div class="qpho">${escapeHtml(qpho)}</div>
-      <div style="margin:8px 0 14px"><button class="round-btn" onclick="speak(this.dataset.w)" data-w="${escapeHtml(w.w)}">🔊</button></div>
+      <div style="margin:8px 0 14px"><button class="round-btn" onclick="speak(this.dataset.w)" data-w="${escapeHtml(w.w)}">🔊</button>${curMode==="ce"?'':' <button class="btn ghost" onclick="voiceScore(Q.word.w,\'fb\')">🎤 读一遍打分</button>'}</div>
       <div class="opts">${Q.opts.map((o,i)=>`<div class="opt" onclick="answer(${i})">${optHtml(o)}</div>`).join('')}</div>
       <div class="feedback" id="fb"></div>`;
   }
@@ -37665,8 +37710,8 @@ function renderAbc(){
   document.getElementById("abcTitle").textContent=LANG().abc;
   document.getElementById("phoTitle").textContent=LANG().pho;
   document.getElementById("phgTitle").textContent=LANG().phg;
-  document.getElementById("abcGrid").innerHTML=LETTERS.map(l=>`<div class="ab" onclick="speak('${l[0]}')"><div class="L">${l[0]}</div><div class="l">${l[1]}</div><div class="p">${l[2]}</div></div>`).join('');
-  document.getElementById("phoGrid").innerHTML=PHONES.map(p=>`<div class="pho" onclick="speak('${p[0]}')"><div class="s">${p[0]}</div><div class="d">${p[1]}</div></div>`).join('');
+  document.getElementById("abcGrid").innerHTML=LETTERS.map(l=>`<div class="ab" onclick="speak('${l[0]}');abcLast='${l[0]}'"><div class="L">${l[0]}</div><div class="l">${l[1]}</div><div class="p">${l[2]}</div></div>`).join('');
+  document.getElementById("phoGrid").innerHTML=PHONES.map(p=>`<div class="pho" onclick="speak('${p[0]}');phoLast='${p[0]}'"><div class="s">${p[0]}</div><div class="d">${p[1]}</div></div>`).join('');
   document.getElementById("phonics").innerHTML=(CUR_LANG==="ja"?PHONICS_JA:PHONICS_EN).map(g=>`<div class="gram"><h4>${g[0]}</h4><p>${g[1]}</p></div>`).join('');
 }
 
@@ -42422,6 +42467,34 @@ function toggleRec(){
   });
 }
 window.toggleRec=toggleRec;
+/* ===== 通用「听一遍 → 读一遍 → 打分」：所有功能卡片共用（英语/日语一致）===== */
+let abcLast="", phoLast="", matchLast="";
+function voiceScore(target, fbId, btnId){
+  target=String(target==null?"":target).trim();
+  const fb=document.getElementById(fbId);
+  if(!target){ if(fb) fb.innerHTML='<div class="ex">先点一下要读的词或句子</div>'; return; }
+  const btn=btnId?document.getElementById(btnId):null, lbl=btn?btn.textContent:"";
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ if(fb) fb.innerHTML=recUnavailableHtml(fbId); return; }
+  recognizeAndScore(target,{
+    onStart:()=>{ if(btn){btn.classList.add("rec"); btn.textContent="⏹ 停止";}
+      if(fb) fb.innerHTML='<span class="muted">🎙️ 正在听，请读出…</span>'; },
+    onEnd:()=>{ if(btn){btn.classList.remove("rec"); btn.textContent=lbl||"🎤 读一遍打分";} },
+    onRetry:(n,m)=>{ if(fb) fb.innerHTML='<span class="muted">🔄 识别重启中('+n+'/'+m+')… 请继续读</span>'; },
+    onResult:(rawTxt,pct,d)=>{
+      const s=S(); s.today.shadow=(s.today.shadow||0)+1; save(); refreshTop();
+      if(fb) fb.innerHTML=readScoreHtml(rawTxt,d,target)+
+        readVerdict(d,'✅ 读得很标准！','🟡 不错，注意重音和连读。','🔴 点🔊再听一遍，慢速模仿。');
+      if(d.total>=80) addXP(2);
+      sfx(d.total>=80?'ok':'no');
+    },
+    onUnsupported:()=>{ if(fb) fb.innerHTML=recUnavailableHtml(fbId); },
+    onError:(ev)=>{ if(fb){ fb.innerHTML=recIssueHtml(fbId,ev); window._recRetry=()=>voiceScore(target,fbId,btnId); micDiag(fbId); } },
+    onNoResult:(why)=>{ if(fb){ fb.innerHTML=recIssueHtml(fbId,{error:why||'no-speech'}); window._recRetry=()=>voiceScore(target,fbId,btnId); micDiag(fbId); } },
+    onInterim:(t)=>{ if(fb) fb.innerHTML='<span class="muted">🎙️ 听到：'+escapeHtml(t)+'</span>'; }
+  });
+}
+window.voiceScore=voiceScore;
 
 /* ============ 阅读 & 语法 ============ */
 const READINGS_EN=[
@@ -45539,7 +45612,7 @@ function renderMatch(){
 }
 function matchFlip(i){
   if(matchLock||!matchDeck[i]||matchDeck[i].done||matchOpen.includes(i)) return;
-  matchOpen.push(i); renderMatch(); speak(matchDeck[i].kind==="word"?matchDeck[i].text:"");
+  matchOpen.push(i); renderMatch(); if(matchDeck[i].kind==="word") matchLast=matchDeck[i].text; speak(matchDeck[i].kind==="word"?matchDeck[i].text:"");
   if(matchOpen.length<2)return;
   matchMoves++; const a=matchDeck[matchOpen[0]],b=matchDeck[matchOpen[1]];
   if(a.id===b.id&&a.kind!==b.kind){
