@@ -688,7 +688,9 @@ th{color:var(--sub);font-weight:600;font-size:12px}
       <div class="keyrow">
         <input type="password" id="aiKey" placeholder="DeepSeek API Key（选填）">
         <button class="btn" onclick="saveKey()">保存</button>
+        <button class="btn ghost" onclick="clearKey()">清除</button>
       </div>
+      <p class="muted">密钥只保存在本机浏览器的本地存储中；没有后端代理，不要填写高权限或长期密钥。</p>
       <div class="chat" id="chat"></div>
       <textarea id="aiIn" placeholder="试试：用 make 造 3 个句子 / 帮我改这段英文 / 餐厅点餐对话"></textarea>
       <div class="keyrow">
@@ -37058,7 +37060,7 @@ function save(){
   try{ const _s=PROF&&PROF[ACTIVE]; if(_s){ if(!_s.hist) _s.hist={};
     const _t=today(), _td=_s.today||{};
     const _n=(_td.learned||0)+(_td.reviewed||0)+(_td.quiz||0)+(_td.listen||0)+(_td.read||0)+(_td.shadow||0);
-    if(_n>0) _s.hist[_t]=Math.max(_s.hist[_t]||0,_n); } }catch(e){}
+    if(_n>0){ _s.hist[_t]=Math.max(_s.hist[_t]||0,_n); tickStreak(); } } }catch(e){}
   localStorage.setItem(STORE_KEY, JSON.stringify({adult:PROF.adult,kid:PROF.kid,active:ACTIVE})); }
 function S(){ return PROF[ACTIVE]; }
 function switchProfile(p){ ACTIVE=p; save(); refreshAll(); renderProfiles(); renderReading(); renderErr(); renderIelts(); }
@@ -37070,6 +37072,9 @@ function setW(w,o){ const s=S(); s.wx[w]=Object.assign(wstate(w),o); }
 function today(){ return new Date().toDateString(); }
 function tickStreak(){
   const s=S(); const t=today();
+  const td=s.today||{};
+  const activity=(td.learned||0)+(td.reviewed||0)+(td.quiz||0)+(td.listen||0)+(td.read||0)+(td.shadow||0);
+  if(activity<=0) return;
   if(s.lastDay===t) return;
   const y=new Date(Date.now()-864e5).toDateString();
   s.streak=(s.lastDay===y)? s.streak+1 : 1;
@@ -37104,7 +37109,7 @@ function errOk(key){
   const ep=document.getElementById('p-err'); if(ep && ep.classList.contains('on')) renderErr();
 }
 function errCount(){ const s=S(); return s.err?Object.keys(s.err).length:0; }
-function errClear(){ S().err={}; save(); renderErr(); renderErrCount(); }
+function errClear(){ if(!confirm('确定清空全部错题吗？此操作不可撤销。')) return; S().err={}; save(); renderErr(); renderErrCount(); }
 function errDrop(k){ const s=S(); if(s.err) delete s.err[k]; save(); renderErr(); renderErrCount(); }
 window.errDrop=errDrop;
 function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -38773,8 +38778,8 @@ function listenShadow(){
       sfx(d.total>=80?'ok':'no');
     },
     onUnsupported:()=>{ fb.innerHTML=recUnavailableHtml(fb.id); },
-    onError:(ev)=>{ fb.innerHTML=recIssueHtml(fb.id,ev,'listenShadow'); micDiag(fb.id); },
-    onNoResult:(why)=>{ fb.innerHTML=recIssueHtml(fb.id,{error:why||'no-speech'},'listenShadow'); micDiag(fb.id); },
+    onError:(ev)=>{ fb.innerHTML=recIssueHtml(fb.id,ev,'listenShadow'); },
+    onNoResult:(why)=>{ fb.innerHTML=recIssueHtml(fb.id,{error:why||'no-speech'},'listenShadow'); },
     onInterim:(t)=>{ fb.innerHTML='<span class="muted">🎙️ 听到：'+escapeHtml(t)+'</span>'; },
     onRetry:(n,m)=>{ fb.innerHTML='<span class="muted">🔄 识别重启中('+n+'/'+m+')… 请继续读这句</span>'; }
   });
@@ -42341,7 +42346,7 @@ function peerScore(fbId,k){
   if(k===3) addXP(2); else if(k===2) addXP(1);
   sfx(k>=2?"ok":"no"); save(); refreshTop(); renderErrCount();
 }
-// 麦克风诊断：识别没结果时，直接测一下麦克风有没有声音，把结论写给用户
+// 麦克风音量检测必须由用户主动触发；识别失败后不能用“事后采样”推断刚才是否说话。
 function micProbe(cb){
   try{
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){ cb("unsupported"); return; }
@@ -42460,8 +42465,8 @@ function toggleRec(){
       sfx(d.total>=80?'ok':'no');
     },
     onUnsupported:()=>{ document.getElementById("shFeedback").innerHTML=recUnavailableHtml("shFeedback"); },
-    onError:(ev)=>{ document.getElementById("shFeedback").innerHTML=recIssueHtml("shFeedback",ev,"toggleRec"); micDiag("shFeedback"); },
-    onNoResult:(why)=>{ document.getElementById("shFeedback").innerHTML=recIssueHtml("shFeedback",{error:why||'no-speech'},"toggleRec"); micDiag("shFeedback"); },
+    onError:(ev)=>{ document.getElementById("shFeedback").innerHTML=recIssueHtml("shFeedback",ev,"toggleRec"); },
+    onNoResult:(why)=>{ document.getElementById("shFeedback").innerHTML=recIssueHtml("shFeedback",{error:why||'no-speech'},"toggleRec"); },
     onInterim:(t)=>{ document.getElementById("shFeedback").innerHTML='<span class="muted">🎙️ 听到：'+escapeHtml(t)+'</span>'; },
     onRetry:(n,m)=>{ document.getElementById("shFeedback").innerHTML='<span class="muted">🔄 识别重启中('+n+'/'+m+')… 请继续读这句</span>'; }
   });
@@ -42489,8 +42494,8 @@ function voiceScore(target, fbId, btnId){
       sfx(d.total>=80?'ok':'no');
     },
     onUnsupported:()=>{ if(fb) fb.innerHTML=recUnavailableHtml(fbId); },
-    onError:(ev)=>{ if(fb){ fb.innerHTML=recIssueHtml(fbId,ev); window._recRetry=()=>voiceScore(target,fbId,btnId); micDiag(fbId); } },
-    onNoResult:(why)=>{ if(fb){ fb.innerHTML=recIssueHtml(fbId,{error:why||'no-speech'}); window._recRetry=()=>voiceScore(target,fbId,btnId); micDiag(fbId); } },
+    onError:(ev)=>{ if(fb){ fb.innerHTML=recIssueHtml(fbId,ev); window._recRetry=()=>voiceScore(target,fbId,btnId); } },
+    onNoResult:(why)=>{ if(fb){ fb.innerHTML=recIssueHtml(fbId,{error:why||'no-speech'}); window._recRetry=()=>voiceScore(target,fbId,btnId); } },
     onInterim:(t)=>{ if(fb) fb.innerHTML='<span class="muted">🎙️ 听到：'+escapeHtml(t)+'</span>'; }
   });
 }
@@ -42882,8 +42887,8 @@ function rdShadowRec(){
       sfx(d.total>=80?'ok':'no');
     },
     onUnsupported:()=>{ fb.innerHTML=recUnavailableHtml(fb.id); },
-    onError:(ev)=>{ fb.innerHTML=recIssueHtml(fb.id,ev,fb.id==='lsFeedback'?'listenShadow':'rdShadowRec'); micDiag(fb.id); },
-    onNoResult:(why)=>{ fb.innerHTML=recIssueHtml(fb.id,{error:why||'no-speech'},fb.id==='lsFeedback'?'listenShadow':'rdShadowRec'); micDiag(fb.id); },
+    onError:(ev)=>{ fb.innerHTML=recIssueHtml(fb.id,ev,fb.id==='lsFeedback'?'listenShadow':'rdShadowRec'); },
+    onNoResult:(why)=>{ fb.innerHTML=recIssueHtml(fb.id,{error:why||'no-speech'},fb.id==='lsFeedback'?'listenShadow':'rdShadowRec'); },
     onInterim:(t)=>{ fb.innerHTML='<span class="muted">🎙️ 听到：'+escapeHtml(t)+'</span>'; },
     onRetry:(n,m)=>{ fb.innerHTML='<span class="muted">🔄 识别重启中('+n+'/'+m+')… 请继续读这句</span>'; }
   });
@@ -42956,11 +42961,13 @@ function renderGrammar(){ document.getElementById("grammar").innerHTML=GRAMMAR.m
 
 /* ============ AI 陪练 ============ */
 const AI_URL="https://api.deepseek.com/chat/completions";
-function saveKey(){ S().aiKey=document.getElementById("aiKey").value.trim(); save(); document.getElementById("aiStatus").textContent=S().aiKey?"已保存":"未填 Key"; }
-window.saveKey=saveKey;
+function saveKey(){ S().aiKey=document.getElementById("aiKey").value.trim(); save(); document.getElementById("aiStatus").textContent=S().aiKey?"已保存（仅本机）":"未填 Key"; }
+function clearKey(){ S().aiKey=""; save(); const el=document.getElementById("aiKey"); if(el) el.value=""; const st=document.getElementById("aiStatus"); if(st) st.textContent="已清除"; }
+window.saveKey=saveKey; window.clearKey=clearKey;
 function pushMsg(role,txt){
   const c=document.getElementById("chat"); const d=document.createElement("div");
-  d.className="msg "+(role==="me"?"me":"ai"); d.innerHTML=txt.replace(/\n/g,"<br>");
+  d.className="msg "+(role==="me"?"me":"ai");
+  String(txt==null?"":txt).split("\n").forEach((line,i)=>{ if(i) d.appendChild(document.createElement("br")); d.appendChild(document.createTextNode(line)); });
   c.appendChild(d); c.scrollTop=c.scrollHeight;
 }
 async function aiSend(){
@@ -42975,7 +42982,10 @@ async function aiSend(){
         {role:"system",content:LANG().ai},
         {role:"user",content:q}]})});
     const d=await r.json();
-    pushMsg("ai", d.choices? d.choices[0].message.content : ("出错："+(d.error?.message||JSON.stringify(d))));
+    if(!r.ok){ throw new Error(d?.error?.message||("HTTP "+r.status)); }
+    const answer=d?.choices?.[0]?.message?.content;
+    if(!answer) throw new Error("AI 返回内容为空");
+    pushMsg("ai", answer);
   }catch(e){ pushMsg("ai","网络错误："+e.message); }
   st.textContent="";
 }
@@ -43251,6 +43261,7 @@ function showPanel(g){
   window.scrollTo({top:0,behavior:"smooth"});
 }
 function goTab(t){
+  if(t!=="lightning" && lzTimer){ clearInterval(lzTimer); lzTimer=null; lzActive=false; const over=document.getElementById('lzOver'); if(over) over.innerHTML='⏸️ 已暂停闪电挑战，返回后可重新开始'; }
   const m=PANEL_OF[t]||["today",""];
   const first=(document.querySelector(".panel.on")||{}).id;
   showPanel(m[0]);
@@ -45666,6 +45677,10 @@ function applyLang(l){
     ?'先听，再照着说一遍。系统按<b>完整度 / 准确度 / 流利度</b>三项打分，漏读的词块会标红。日语按读音比对：识别成假名也能和汉字原文判准。'
     :'先听，再照着说一遍。系统按<b>完整度 / 准确度 / 流利度</b>三项打分，漏读或读错的词会标红。发音进步最快的一招，听不清就把速度拉慢。';
   ["c-ielts","c-phases"].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=l==="ja"?"none":"";});
+  // 切换语言后立即重绘当前可见页面，避免顶部语言已切换但题目仍是旧语言。
+  renderAbc(); renderReading(); renderGrammar(); shadowShow(); renderProfiles(); renderErr(); refreshAll();
+  const activePanel=document.querySelector('.panel.on');
+  if(activePanel && activePanel.id){ const g=activePanel.id.replace(/^p-/,''); showPanel(g); }
   document.title=ic+" "+nm+"星球 · 30分钟征服"+nm;
 }
 function chooseLang(l){
@@ -45689,7 +45704,7 @@ window.chooseLang=chooseLang; window.openLangGate=openLangGate;
 function bootApp(){
   loadProfiles();
   const s=S(); s.lv=levelFromXp(s.xp); s.done=Array.from(new Set(s.done||[]));
-  tickStreak(); resetToday(); save();
+  resetToday(); save();
   renderProfiles();
   document.getElementById("aiKey").value=s.aiKey||"";
   renderAbc(); renderReading(); renderGrammar(); shadowShow();
