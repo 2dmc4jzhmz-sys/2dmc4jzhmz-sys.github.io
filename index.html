@@ -37081,12 +37081,13 @@ function loadProfiles(){
   ACTIVE=d.active||"adult";
 }
 function save(){
+  if(!PROF) return; /* 未初始化时不落盘，防止启动期崩溃 */
   try{ const _s=PROF&&PROF[ACTIVE]; if(_s){ if(!_s.hist) _s.hist={};
     const _t=today(), _td=_s.today||{};
     const _n=(_td.learned||0)+(_td.reviewed||0)+(_td.quiz||0)+(_td.listen||0)+(_td.read||0)+(_td.shadow||0);
     if(_n>0){ _s.hist[_t]=Math.max(_s.hist[_t]||0,_n); tickStreak(); } } }catch(e){}
   localStorage.setItem(STORE_KEY, JSON.stringify({adult:PROF.adult,kid:PROF.kid,active:ACTIVE})); }
-function S(){ return PROF[ACTIVE]; }
+function S(){ if(!PROF) loadProfiles(); return PROF[ACTIVE]; } /* 懒加载：applyLang 启动期渲染时 PROF 可能还没建好 */
 function switchProfile(p){ ACTIVE=p; save(); refreshAll(); renderProfiles(); renderReading(); renderErr(); renderIelts(); }
 window.switchProfile=switchProfile;
 
@@ -45697,7 +45698,7 @@ function applyLang(l){
   SHADOWS  = uniqueBy(l==="ja"?SHADOWS_JA:SHADOWS_EN,s=>String(s[0]||s).trim().toLowerCase());
   READINGS = uniqueBy((l==="ja"?READINGS_JA:READINGS_EN).concat(l==="ja"?READINGS_EXTRA_JA:READINGS_EXTRA_EN),r=>String(r.body||r.t||"").trim().toLowerCase()).map((r,i)=>{
     const out=Object.assign({},r);
-    if(out.body) out.body=Array.from(new Set(String(out.body).split(/(?<=[。！？.!?])/).map(x=>x.trim()).filter(Boolean))).join(' ');
+    if(out.body) out.body=Array.from(new Set(String(out.body).replace(/([。！？.!?])/g,"$1\n").split("\n").map(x=>x.trim()).filter(Boolean))).join(' ');
     if(Array.isArray(out.zh)) out.zh=Array.from(new Set(out.zh.map(x=>String(x).trim()).filter(Boolean)));
     if(l==="ja" && (!out.t || out.t==="練習")) out.t=['日常生活','学校与工作','旅行与出行','家庭与朋友'][i%4]+'练习';
     return out;
@@ -45804,4 +45805,4 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
 </script>
 </body>
 </html>
-<!-- build 20260913c-recdiag -->
+<!-- build 20260920a-fixboot -->
