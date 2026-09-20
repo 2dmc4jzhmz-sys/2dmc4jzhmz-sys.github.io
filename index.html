@@ -573,6 +573,20 @@ th{color:var(--sub);font-weight:600;font-size:12px}
       </div>
       <div class="feedback" id="matchVc"></div>
     </div>
+    <div class="card" id="c-scenario">
+      <div class="ch"><span class="ci">🎭</span><h2>情景任务</h2></div>
+      <p class="desc" id="scenarioPrompt">完成一次真实交流任务，选择最自然的表达。</p>
+      <div class="big-sentence" id="scenarioText">点“开始任务”</div>
+      <div class="opts" id="scenarioOpts"></div><div class="feedback" id="scenarioFb"></div>
+      <button class="btn" onclick="scenarioNew()">开始任务</button>
+    </div>
+    <div class="card" id="c-listenquest">
+      <div class="ch"><span class="ci">🕵️</span><h2>听力侦探</h2></div>
+      <p class="desc">先听，再找出你听到的关键词。</p>
+      <button class="round-btn" onclick="listenQuestPlay()">🔊 播放</button>
+      <div class="opts" id="listenQuestOpts"></div><div class="feedback" id="listenQuestFb"></div>
+      <button class="btn ghost" onclick="listenQuestNew()">换一句</button>
+    </div>
   </section>
 
   <!-- ==================== 听说 ==================== -->
@@ -745,6 +759,16 @@ th{color:var(--sub);font-weight:600;font-size:12px}
       <div id="ieltsPhases"></div>
     </div>
 
+    <div class="card" id="c-data">
+      <div class="ch"><span class="ci">💾</span><h2>数据与薄弱点</h2></div>
+      <p class="desc">学习记录只保存在本机。可导出备份，也可查看最需要复习的能力。</p>
+      <div id="weakSkills" class="desc">完成练习后这里会显示薄弱点。</div>
+      <div class="keyrow">
+        <button class="btn" onclick="exportLearningData()">导出学习数据</button>
+        <button class="btn ghost" onclick="document.getElementById('importLearningFile').click()">导入备份</button>
+        <input id="importLearningFile" type="file" accept="application/json" style="display:none" onchange="importLearningData(this.files[0])">
+      </div>
+    </div>
     <div class="card" id="c-method">
       <div class="ch"><span class="ci">📚</span><h2>为什么这么安排</h2></div>
       <p class="desc">每一处设计都对应一个被反复验证过的学习原理，不是拍脑袋。</p>
@@ -37511,7 +37535,24 @@ function refreshTop(){
   document.getElementById("covPct").textContent=p+"%";
   const cn=document.getElementById("covNum"); if(cn) cn.textContent="已学 "+learnedCount()+" / "+GOAL_WORDS;
   document.getElementById("covRing").style.strokeDashoffset=276.5*(1-p/100);
-  renderMemory(); renderAch(); renderToday(); renderCollection(); renderErrCount(); renderRoadmap();
+  renderMemory(); renderAch(); renderToday(); renderCollection(); renderErrCount(); renderRoadmap(); renderWeakSkills();
+}
+function renderWeakSkills(){
+  const el=document.getElementById('weakSkills'); if(!el) return;
+  const e=S().err||{}, rows=Object.keys(e).map(k=>({k,n:(e[k].err||0)-(e[k].ok||0)})).sort((a,b)=>b.n-a.n).slice(0,5);
+  el.innerHTML=rows.length ? '<b>优先复习：</b> '+rows.map(x=>escapeHtml(x.k)+'（错 '+x.n+' 次）').join('、') : '完成练习后这里会显示薄弱点。';
+}
+function exportLearningData(){
+  const payload={schemaVersion:2,exportedAt:new Date().toISOString(),language:CUR_LANG,profiles:PROF};
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'})); a.download='english-planet-backup-'+Date.now()+'.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+async function importLearningData(file){
+  if(!file) return;
+  try{ const d=JSON.parse(await file.text()); if(!d||d.schemaVersion<1||!d.profiles?.adult||!d.profiles?.kid) throw new Error('格式不正确');
+    if(!confirm('导入备份会覆盖当前两个档案，是否继续？')) return;
+    PROF=d.profiles; ACTIVE=d.profiles.active||d.active||'adult'; save(); refreshAll(); renderProfiles(); renderErr();
+    alert('学习数据已导入');
+  }catch(e){ alert('导入失败：'+e.message); }
 }
 function renderMemory(){
   const bins=[0,0,0,0,0,0];
@@ -43236,13 +43277,22 @@ function organizeApp(){
   const groups={
     word:["c-roadmap","c-abc","c-pho","c-phonics","c-battle","c-flash"],
     listen:["c-err","c-listen","c-shadow","c-dictate","c-reading","c-grammar","c-synonym","c-ai"],
-    read:["c-chain","c-lz","c-scramble","c-match"],
-    start:["c-vocab","c-cal","c-map","c-mem","c-collection","c-ielts","c-phases","c-method"]
+    read:["c-chain","c-lz","c-scramble","c-match","c-scenario","c-listenquest"],
+    start:["c-vocab","c-cal","c-map","c-mem","c-collection","c-data","c-ielts","c-phases","c-method"]
   };
   const heads={today:["今天学什么","系统已经排好顺序，完成一项就会自动记录。"],word:["分阶段课程","从发音到表达，按当前掌握量推荐下一步。"],listen:["专项练习","错词、听说、阅读和表达集中练，不再和游戏混在一起。"],read:["游戏乐园","短局、有反馈、有奖励，练习可以很好玩。"],start:["我的进度","关卡、记忆、收藏与 90 天目标都在这里。"]};
   Object.keys(groups).forEach(g=>{ const p=document.getElementById("p-"+g); groups[g].forEach(id=>{const el=document.getElementById(id);if(el)p.appendChild(el);}); });
   Object.keys(heads).forEach(g=>{ const p=document.getElementById("p-"+g); if(!p||(p.firstElementChild&&p.firstElementChild.classList.contains("view-head")))return; const h=document.createElement("div");h.className="view-head";h.innerHTML="<h1>"+heads[g][0]+"</h1><p>"+heads[g][1]+"</p>";p.insertBefore(h,p.firstChild); });
 }
+const SCENARIOS_EN=[['在咖啡店说“请给我一杯水”',['I would like a glass of water.','I water glass want.','Give water me.'],0],['表达过敏',['I am allergic to nuts.','I allergy nuts am.','Nuts are me allergic.'],0]];
+const SCENARIOS_JA=[['在餐厅礼貌地要一杯水',['お水をお願いします。','水を食べます。','お水がありません。'],0],['介绍自己是学生',['学生です。','学生を食べます。','学生に行きます。'],0]];
+let scenarioCur=null,listenQuestCur=null;
+function scenarioNew(){ const a=CUR_LANG==='ja'?SCENARIOS_JA:SCENARIOS_EN; scenarioCur=a[Math.floor(Math.random()*a.length)]; document.getElementById('scenarioText').textContent=scenarioCur[0]; document.getElementById('scenarioFb').textContent=''; document.getElementById('scenarioOpts').innerHTML=scenarioCur[1].map((x,i)=>'<button class="opt" onclick="scenarioAnswer('+i+')">'+escapeHtml(x)+'</button>').join(''); }
+function scenarioAnswer(i){ if(!scenarioCur)return; const ok=i===scenarioCur[2]; const fb=document.getElementById('scenarioFb'); fb.innerHTML=ok?'✅ 任务完成：'+escapeHtml(scenarioCur[1][i]):'❌ 更自然的表达：'+escapeHtml(scenarioCur[1][scenarioCur[2]]); if(ok){S().today.read=(S().today.read||0)+1;addXP(2);save();refreshTop();} }
+function listenQuestNew(){ const s=SENTENCES&&SENTENCES.length?SENTENCES[Math.floor(Math.random()*SENTENCES.length)]:null; if(!s)return; listenQuestCur=s; document.getElementById('listenQuestFb').textContent=''; const words=String(s[0]).split(/[\s、，。！？]+/).filter(Boolean); const key=words[Math.floor(Math.random()*words.length)]||s[0]; listenQuestCur.key=key; document.getElementById('listenQuestOpts').innerHTML=shuffle([key].concat(words.filter(x=>x!==key).slice(0,3))).map(x=>'<button class="opt" onclick="listenQuestAnswer(this.dataset.x)" data-x="'+escapeHtml(x)+'">'+escapeHtml(x)+'</button>').join(''); }
+function listenQuestPlay(){ if(!listenQuestCur)listenQuestNew(); if(listenQuestCur)speak(listenQuestCur[0],0.82); }
+function listenQuestAnswer(x){ if(!listenQuestCur)return; const ok=x===listenQuestCur.key; document.getElementById('listenQuestFb').textContent=ok?'✅ 听到了关键词：'+x:'❌ 正确关键词：'+listenQuestCur.key; if(ok){S().today.listen=(S().today.listen||0)+1;addXP(1);save();refreshTop();} }
+window.scenarioNew=scenarioNew; window.scenarioAnswer=scenarioAnswer; window.listenQuestNew=listenQuestNew; window.listenQuestPlay=listenQuestPlay; window.listenQuestAnswer=listenQuestAnswer;
 
 const PANEL_OF={today:["today",""],word:["word",""],battle:["word","c-battle"],abc:["word","c-abc"],
  err:["listen","c-err"],listen:["listen","c-listen"],shadow:["listen","c-shadow"],read:["listen","c-reading"],grammar:["listen","c-grammar"],ai:["listen","c-ai"],
@@ -45645,7 +45695,13 @@ function applyLang(l){
   WORDS    = uniqueBy(l==="ja"?WORDS_JA:WORDS_EN,w=>String(w.w||"").trim().toLowerCase());
   SENTENCES= uniqueBy(l==="ja"?SENTENCES_JA:SENTENCES_EN,s=>String(s[0]||"").trim().toLowerCase());
   SHADOWS  = uniqueBy(l==="ja"?SHADOWS_JA:SHADOWS_EN,s=>String(s[0]||s).trim().toLowerCase());
-  READINGS = uniqueBy((l==="ja"?READINGS_JA:READINGS_EN).concat(l==="ja"?READINGS_EXTRA_JA:READINGS_EXTRA_EN),r=>String(r.body||r.t||"").trim().toLowerCase());
+  READINGS = uniqueBy((l==="ja"?READINGS_JA:READINGS_EN).concat(l==="ja"?READINGS_EXTRA_JA:READINGS_EXTRA_EN),r=>String(r.body||r.t||"").trim().toLowerCase()).map((r,i)=>{
+    const out=Object.assign({},r);
+    if(out.body) out.body=Array.from(new Set(String(out.body).split(/(?<=[。！？.!?])/).map(x=>x.trim()).filter(Boolean))).join(' ');
+    if(Array.isArray(out.zh)) out.zh=Array.from(new Set(out.zh.map(x=>String(x).trim()).filter(Boolean)));
+    if(l==="ja" && (!out.t || out.t==="練習")) out.t=['日常生活','学校与工作','旅行与出行','家庭与朋友'][i%4]+'练习';
+    return out;
+  });
   GRAMMAR  = l==="ja"?GRAMMAR_JA:GRAMMAR_EN;
   SYN      = l==="ja"?SYN_JA:SYN_EN;
   WORDSET  = new Set(WORDS.map(w=>String(w.w).toLowerCase()));
