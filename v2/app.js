@@ -74,6 +74,7 @@ async function boot() {
   }
   renderTodayView();
   registerSW();
+  if (new URLSearchParams(location.search).has('debug')) startDebug();
 
   // 开发用：?autostart=1 直接进副本，方便截图与手测
   const qs = new URLSearchParams(location.search);
@@ -311,6 +312,32 @@ function speak(text) {
   speechSynthesis.speak(u);
 }
 
+/* ---------- 调试自检条（?debug=1） ---------- */
+function startDebug() {
+  const box = document.createElement('div');
+  box.id = 'dbg';
+  box.style.cssText =
+    'position:sticky;top:0;z-index:9998;background:#12202b;color:#9fe3ff;border-bottom:1px solid #2b4a5e;' +
+    'font:11px/1.5 ui-monospace,Menlo,monospace;padding:6px 10px;white-space:pre-wrap;word-break:break-all';
+  document.body.prepend(box);
+  let last = '-';
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-action]');
+    last = t ? t.dataset.action : '(无 data-action)';
+  }, true);
+  const tick = () => {
+    const vv = window.visualViewport;
+    box.textContent =
+      `build ${BUILD}  vw ${innerWidth}×${innerHeight}  scroll ${document.documentElement.scrollWidth}×${document.documentElement.scrollHeight}\n` +
+      `visual ${vv ? Math.round(vv.width) + '×' + Math.round(vv.height) + ' scale ' + vv.scale.toFixed(2) + ' off ' + Math.round(vv.offsetTop) : 'n/a'}  dpr ${devicePixelRatio}\n` +
+      `最近点击: ${last}`;
+  };
+  tick();
+  setInterval(tick, 500);
+  window.addEventListener('resize', tick);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', tick);
+}
+
 /* ---------- PWA ---------- */
 
 function registerSW() {
@@ -374,12 +401,23 @@ document.addEventListener('click', (e) => {
     case 'rest':
       choose(t.dataset.mode, null);
       break;
-    case 'quit-run':
-      if (confirm('退出副本？本局进度不保留。')) {
+    case 'quit-run': {
+      if (t.dataset.armed === '1') {
         app.run = null;
         renderTodayView();
+        break;
       }
+      t.dataset.armed = '1';
+      t.textContent = '确认退出';
+      t.classList.add('armed');
+      setTimeout(() => {
+        if (!t.isConnected) return;
+        t.dataset.armed = '0';
+        t.textContent = '✕';
+        t.classList.remove('armed');
+      }, 2600);
       break;
+    }
     case 'back-today':
       app.run = null;
       renderTodayView();
