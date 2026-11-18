@@ -11,6 +11,36 @@ import { renderReading } from './ui/reading.js';
 import { $, toast, vibrate } from './ui/dom.js';
 import { BUILD, VERSION } from './cfg.js';
 
+/* ---------- 故障可视化：任何未捕获错误直接显示在屏幕上，不再静默白屏 ---------- */
+function showFatal(msg) {
+  let box = document.getElementById('fatal');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'fatal';
+    box.style.cssText =
+      'position:fixed;left:8px;right:8px;bottom:8px;z-index:9999;background:#3a0d18;color:#ffd7de;' +
+      'border:1px solid #ff5470;border-radius:12px;padding:10px 12px;font-size:12px;line-height:1.5;' +
+      'max-height:44vh;overflow:auto;white-space:pre-wrap;word-break:break-word';
+    document.body.appendChild(box);
+  }
+  box.textContent = '出错了：' + msg + '\n\nbuild ' + BUILD;
+}
+window.addEventListener('error', (e) => showFatal(e.message || 'script error'));
+window.addEventListener('unhandledrejection', (e) => showFatal((e.reason && e.reason.message) || String(e.reason)));
+
+/* ---------- ?reset=1：注销 SW、清空缓存后重载（修“改了没生效/页面卡死”用） ---------- */
+if (new URLSearchParams(location.search).has('reset')) {
+  (async () => {
+    try {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map((r) => r.unregister()));
+    } catch (e) {}
+    location.replace(location.pathname);
+  })();
+}
+
 const app = {
   view: 'today',
   tab: 'today',

@@ -296,3 +296,8 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 @media (min-width: 480px) {
   .pw { font-size: 34px; }
 }
+
+/* 故障提示条 */
+#fatal {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
