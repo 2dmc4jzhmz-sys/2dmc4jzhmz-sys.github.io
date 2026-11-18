@@ -59,6 +59,23 @@ export function renderToday(ctx) {
     <p class="muted small">每掌握 200 个词，解锁下一级词库。已掌握 = 连续答对 4 次以上。</p>
   </section>
 
+  <section class="card">
+    <div class="row between">
+      <p class="tag">最近 7 天</p>
+      <p class="muted small">${ctx.week.filter((d) => d.n > 0).length} 天有记录</p>
+    </div>
+    <div class="dots">
+      ${ctx.week
+        .map(
+          (d) => `<div class="dot ${d.n > 0 ? 'on' : ''} ${d.today ? 'today' : ''}">
+            <b>${d.n || ''}</b><span>${d.label}</span>
+          </div>`
+        )
+        .join('')}
+    </div>
+    <p class="muted small">${ctx.week.find((d) => d.today).n > 0 ? '今天已经打过卡，明天同一时间来。' : '今天还没开工 —— 一局 20 分钟就算打卡。'}</p>
+  </section>
+
   <p class="build">build ${build}</p>
   `;
 }

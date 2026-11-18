@@ -129,6 +129,12 @@ function renderTodayView() {
   app.tab = 'today';
   const seed = `${todayKey()}:${state.lang}`;
   const next = pickText();
+  const week = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 86400000);
+    const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    week.push({ k, n: p().days[k] || 0, label: '日一二三四五六'[d.getDay()], today: k === todayKey() });
+  }
   render(
     shell(
       renderToday({
@@ -138,6 +144,7 @@ function renderTodayView() {
         today: todayKey(),
         seed,
         text: next,
+        week,
         build: VERSION,
       })
     )
