@@ -285,7 +285,26 @@ function speak(text) {
 
 function registerSW() {
   if (!('serviceWorker' in navigator)) return;
-  navigator.serviceWorker.register(`sw.js?v=${BUILD}`).catch((e) => console.warn('SW 注册失败', e));
+  const hadController = !!navigator.serviceWorker.controller;
+
+  navigator.serviceWorker
+    .register(`sw.js?v=${BUILD}`)
+    .then((reg) => {
+      // 回到前台时主动查一次新版本
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') reg.update().catch(() => {});
+      });
+    })
+    .catch((e) => console.warn('SW 注册失败', e));
+
+  // 新版本接管后自动重载一次；首次安装不重载
+  let reloading = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController || reloading) return;
+    reloading = true;
+    toast('已更新到最新版', 900);
+    setTimeout(() => location.reload(), 700);
+  });
 }
 
 /* ---------- 事件 ---------- */
