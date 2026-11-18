@@ -1,0 +1,13 @@
+{
+  "name": "english-planet-v2",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "英语星球 v2：每天一局 20 分钟单词 roguelike",
+  "scripts": {
+    "serve": "python3 -m http.server 8099",
+    "export": "node tools/export-words.mjs",
+    "validate": "node tools/validate-content.mjs",
+    "test": "node tools/test-run.mjs"
+  }
+}

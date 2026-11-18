@@ -1,0 +1,20 @@
+{
+  "name": "英语星球 · 每日一局",
+  "short_name": "英语星球",
+  "description": "每天一局 20 分钟单词 roguelike：随机地图、随机事件、随机掉落，离线可玩。",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f0d1a",
+  "theme_color": "#0f0d1a",
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "scope": "./",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-1024.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "categories": ["education", "games"],
+  "prefer_related_applications": false
+}

@@ -1,0 +1,348 @@
+[
+  {
+    "id": "en-01",
+    "level": "a2",
+    "title": "The Last Bus",
+    "source": "播客访谈改写",
+    "body": "I finish work at eleven, and the last bus leaves at eleven ten. Most nights I run for it.\nTonight the driver waited. He saw me coming, closed the door slowly, and pulled away only after I sat down. \"You're the one who runs,\" he said. \"I can set my watch by you.\"\nI laughed. Then he told me he had driven this route for nineteen years. He knows every stop, and most of the regulars, even the ones who never say a word.",
+    "zh": [
+      "我十一点下班，末班车十一点十分开。大多数晚上我都得跑着去追。",
+      "今晚司机等了。他看见我跑过来，慢慢关上门，等我坐下才起步。“你就是那个总在跑的人，”他说，“我拿你都能对表了。”",
+      "我笑了。然后他告诉我，这条线他开了十九年。他记得每一站，也记得大多数常客，包括那些一句话都不说的人。"
+    ],
+    "words": [
+      "driver",
+      "route",
+      "regulars"
+    ],
+    "q": {
+      "q": "司机今晚做了什么不一样的事？",
+      "opts": [
+        "他开得更快了",
+        "他等到作者上车才起步",
+        "他让作者坐到前面",
+        "他提前一分钟发车"
+      ],
+      "oz": [
+        "He drove faster.",
+        "He waited for the writer.",
+        "He let the writer sit in front.",
+        "He left one minute early."
+      ],
+      "a": 1,
+      "z": "第二段明确写了：看见我跑过来，等我坐下才起步。"
+    }
+  },
+  {
+    "id": "en-02",
+    "level": "a2",
+    "title": "Two Minutes Late",
+    "source": "职场对话改写",
+    "body": "The interview was at nine. I got there at nine two, because the lift was slow.\nThe manager did not look up. \"You're late,\" she said.\n\"Two minutes,\" I said. \"The lift.\"\nShe put down her pen. \"I know. I watched you run from the corner. You stopped at the door to fix your shirt.\" She smiled. \"That's two minutes I can trust. Sit down.\"",
+    "zh": [
+      "面试九点开始。我九点零二到，因为电梯很慢。",
+      "经理没抬头。“你迟到了，”她说。",
+      "“两分钟，”我说，“电梯。”",
+      "她放下笔。“我知道。我看着你从街角跑过来。你在门口停下来整理了一下衬衫。”她笑了。“这两分钟我信得过。坐下吧。”"
+    ],
+    "words": [
+      "interview",
+      "manager",
+      "trust"
+    ],
+    "q": {
+      "q": "经理为什么没有因为迟到生气？",
+      "opts": [
+        "因为她自己也迟到了",
+        "因为她看见他确实只差两分钟，而且还在意自己的仪表",
+        "因为电梯坏了",
+        "因为她是他的朋友"
+      ],
+      "oz": [
+        "She was late too.",
+        "She saw he really was two minutes late and still cared about how he looked.",
+        "The lift was broken.",
+        "She was his friend."
+      ],
+      "a": 1,
+      "z": "她说“这两分钟我信得过”，因为她看到的是真实的两分钟，不是编的理由。"
+    }
+  },
+  {
+    "id": "en-03",
+    "level": "a2",
+    "title": "A Small Mistake",
+    "source": "新闻简讯改写",
+    "body": "A man in Osaka found a bag on a train last month. Inside were 1.2 million yen and a phone number.\nHe called the number. The owner, an old woman, started to cry. The money was for her grandson's school.\nThe railway company gave the man a small gift: a pen. He said it was fine. \"I only did what anyone would do.\"\nBut his friends keep asking him the same question: what if the bag had been empty?",
+    "zh": [
+      "上个月，一位大阪男子在电车上捡到一个包。里面有一百二十万日元和一张写着电话号码的纸。",
+      "他拨了那个号码。失主是一位老妇人，她哭了起来。那笔钱是给孙子交学费的。",
+      "铁路公司送给他一支笔作为答谢。他说这没什么，“我只是做了谁都会做的事”。",
+      "但他的朋友一直在问他同一个问题：如果包里是空的呢？"
+    ],
+    "words": [
+      "railway",
+      "owner",
+      "empty"
+    ],
+    "q": {
+      "q": "朋友问的那个问题，真正想说的是什么？",
+      "opts": [
+        "包里到底有多少钱",
+        "如果没有任何回报，他还会不会做同样的事",
+        "他为什么不留下钱",
+        "铁路公司为什么只送一支笔"
+      ],
+      "oz": [
+        "How much money was in the bag.",
+        "Whether he would do the same with no reward.",
+        "Why he did not keep the money.",
+        "Why the company only gave a pen."
+      ],
+      "a": 1,
+      "z": "“如果包里是空的”是在问动机：没有回报时还会不会做对的事。"
+    }
+  },
+  {
+    "id": "en-04",
+    "level": "b1",
+    "title": "Why We Forget Names",
+    "source": "科普播客改写",
+    "body": "You meet someone. Ten seconds later, the name is gone. This is not a memory problem, researchers say. It is an attention problem.\nWhen we hear a name, we are usually busy with something else: shaking hands, thinking about how we look, planning what to say next. The name arrives, but nothing holds it.\nThe fix is boring. Repeat the name once, out loud, and use it again before you leave. That small act turns a sound into something your brain has handled.",
+    "zh": [
+      "你刚认识一个人，十秒后名字就忘了。研究人员说，这不是记忆问题，是注意力问题。",
+      "听到名字的时候，我们通常在忙别的：握手、想自己看起来如何、盘算接下来该说什么。名字进来了，但没有东西接住它。",
+      "解决办法很朴素：把名字出声重复一遍，离开前再用一次。这个小动作会把一个声音变成大脑真正处理过的东西。"
+    ],
+    "words": [
+      "attention",
+      "researchers",
+      "boring"
+    ],
+    "q": {
+      "q": "按文章说法，忘记名字的主要原因是？",
+      "opts": [
+        "名字太复杂",
+        "记忆力天生不好",
+        "听到名字时注意力在别处",
+        "对方说得太快"
+      ],
+      "oz": [
+        "The name is too complex.",
+        "Memory is naturally weak.",
+        "Attention is somewhere else when the name arrives.",
+        "The other person speaks too fast."
+      ],
+      "a": 2,
+      "z": "第一段就点明：not a memory problem, an attention problem。"
+    }
+  },
+  {
+    "id": "en-05",
+    "level": "b1",
+    "title": "The Night Market",
+    "source": "旅行视频改写",
+    "body": "The market opens at ten, but nothing really starts until eleven. By then the smoke from the grills has reached the second floor of the buildings, and the street smells like fish and charcoal.\nI bought a bowl of noodles from a woman who has been there since 1998. She said the rent has gone up four times. \"But the young people still come,\" she said. \"They take photos of everything. Sometimes they forget to eat.\"\nI ate slowly. Nobody took photos of me.",
+    "zh": [
+      "夜市十点开摊，但真正热闹要等到十一点。那时烤架的烟已经飘到二楼，整条街都是鱼和炭的味道。",
+      "我在一位 1998 年就在这里摆摊的阿姨那儿买了一碗面。她说租金涨了四次。“但年轻人还是会来，”她说，“他们什么都拍照，有时候忘了吃。”",
+      "我吃得很慢。没有人拍我。"
+    ],
+    "words": [
+      "charcoal",
+      "rent",
+      "noodles"
+    ],
+    "q": {
+      "q": "阿姨那句话里，隐含的态度是什么？",
+      "opts": [
+        "她讨厌年轻人",
+        "生意比以前好了",
+        "她对年轻人的拍照习惯有点无奈，但仍欢迎他们来",
+        "她准备搬走"
+      ],
+      "oz": [
+        "She dislikes young people.",
+        "Business is better than before.",
+        "She finds their photo habit a bit much but still welcomes them.",
+        "She plans to move away."
+      ],
+      "a": 2,
+      "z": "“有时候忘了吃”带着无奈的幽默，但前半句是“他们还是会来”。"
+    }
+  },
+  {
+    "id": "en-06",
+    "level": "b1",
+    "title": "Working From Home",
+    "source": "访谈节目改写",
+    "body": "Interviewer: What changed after you started working from home?\nEngineer: The first month was great. No commute, no one talking next to me. Then I noticed I was working until ten without knowing it.\nInterviewer: Why?\nEngineer: Because there was no line. At the office, the line was leaving the building. At home, the line is a decision you have to make every hour, and you get tired of making it.\nInterviewer: So what did you do?\nEngineer: I bought a lamp. When the lamp is on, I work. When it is off, I stop. It sounds silly, but it works.",
+    "zh": [
+      "主持人：开始居家办公之后，有什么变化？",
+      "工程师：第一个月特别好。不用通勤，旁边也没人说话。后来我发现自己在不知不觉中工作到十点。",
+      "主持人：为什么？",
+      "工程师：因为没有界线。在公司，界线是走出那栋楼。在家，界线是每小时都要做的决定，而做这个决定很累。",
+      "主持人：那你怎么解决的？",
+      "工程师：我买了一盏灯。灯亮着就工作，灯灭了就停。听起来很傻，但有用。"
+    ],
+    "words": [
+      "commute",
+      "line",
+      "lamp"
+    ],
+    "q": {
+      "q": "工程师说的“界线”指的是什么？",
+      "opts": [
+        "公司里的一条规定",
+        "区分工作与休息的物理或行为信号",
+        "工资的分界线",
+        "通勤路线"
+      ],
+      "oz": [
+        "A rule at the office.",
+        "A physical or behavioural signal between work and rest.",
+        "A line on the salary scale.",
+        "The commute route."
+      ],
+      "a": 1,
+      "z": "他用“走出大楼”和“开灯/关灯”说明：界线是一个具体信号，而不是靠意志力。"
+    }
+  },
+  {
+    "id": "en-07",
+    "level": "b1",
+    "title": "The Landlord's Letter",
+    "source": "生活文书改写",
+    "body": "Dear tenant,\nThe water will be off on Tuesday, from nine in the morning until about four. A worker will need to enter your flat. If you are not home, he has a key.\nWe are sorry for the trouble. The pipes are more than forty years old, and this is the third repair this year. We are planning to replace them completely next spring, but that work will take two weeks and will cost more than we can do quietly.\nPlease move anything valuable away from the bathroom wall.",
+    "zh": [
+      "亲爱的租客：",
+      "本周二上午九点到下午四点左右会停水。工人需要进入你的公寓。如果你不在家，他有钥匙。",
+      "给你添麻烦，很抱歉。管道已经用了四十多年，这是今年第三次维修。我们计划明年春天整体更换，但那个工程要两周，也没法安静地做完。",
+      "请把浴室墙边的贵重物品移开。"
+    ],
+    "words": [
+      "tenant",
+      "pipes",
+      "replace"
+    ],
+    "q": {
+      "q": "这封信真正的暗示是什么？",
+      "opts": [
+        "以后不会再有维修",
+        "明年春天会有更大、更长时间的施工",
+        "租客需要自己修管道",
+        "房租要涨"
+      ],
+      "oz": [
+        "There will be no more repairs.",
+        "Next spring there will be bigger, longer work.",
+        "The tenant must fix the pipes.",
+        "The rent will go up."
+      ],
+      "a": 1,
+      "z": "“两周”“没法安静地做完”是在提前铺垫明年春天的大工程。"
+    }
+  },
+  {
+    "id": "en-08",
+    "level": "b2",
+    "title": "The Cost of Cheap Clothes",
+    "source": "新闻分析改写",
+    "body": "A shirt costs less today than it did twenty years ago. That is not because cotton became cheaper. It is because the work moved somewhere with weaker rules.\nThe strange part is that the price did not hide the cost. It simply moved it: into rivers near factories, into wages that cannot cover rent, into clothes that are thrown away after five washes.\nConsumers are not stupid. Most people know this. What they lack is not information but a way to act on it. A label tells you the price. It rarely tells you who paid the rest.",
+    "zh": [
+      "今天一件衬衫比二十年前更便宜。这不是因为棉花变便宜了，而是因为工序搬到了规则更松的地方。",
+      "奇怪的地方在于，价格并没有让成本消失，只是把它转移了：转移到工厂附近的河里，转移到付不起房租的工资里，转移到洗五次就被扔掉的成衣里。",
+      "消费者不傻。大多数人都知道这些。他们缺的不是信息，而是把信息变成行动的方式。标签告诉你价格，却很少告诉你剩下的那部分是谁付的。"
+    ],
+    "words": [
+      "wages",
+      "consumers",
+      "label"
+    ],
+    "q": {
+      "q": "作者说“price did not hide the cost”是什么意思？",
+      "opts": [
+        "成本被隐藏了，消费者看不见",
+        "成本没有被隐藏，只是转移到了别处",
+        "价格包含了所有成本",
+        "成本下降了"
+      ],
+      "oz": [
+        "Costs were hidden from consumers.",
+        "Costs were not hidden, only moved elsewhere.",
+        "The price includes all costs.",
+        "Costs went down."
+      ],
+      "a": 1,
+      "z": "it simply moved it 是关键：成本没被藏起来，而是转移给了环境、工人和垃圾场。"
+    }
+  },
+  {
+    "id": "en-09",
+    "level": "b2",
+    "title": "What Silence Does",
+    "source": "播客随笔改写",
+    "body": "In a conversation, silence is not empty. It is doing something.\nA short pause says: I am thinking. A longer one says: I am not sure I agree. A silence after a question can be a request, or a refusal, depending on who is waiting.\nMost of us fill silence too quickly, because it feels like failure. We talk over the pause and lose the only information the other person was about to give us. Learning to wait two seconds is harder than it sounds, and more useful than most of what we say in those two seconds.",
+    "zh": [
+      "在对话里，沉默不是空的，它在做事情。",
+      "短暂的停顿是“我在想”。更长的停顿是“我不太同意”。一个问题之后的沉默，可能是请求，也可能是拒绝，取决于谁在等。",
+      "我们大多数人太快地把沉默填满，因为沉默感觉像是失败。我们在停顿上盖过话去，于是丢掉了对方本来要给的唯一信息。学会等两秒，比听起来难，也比那两秒里我们大多数话更有用。"
+    ],
+    "words": [
+      "pause",
+      "refusal",
+      "conversation"
+    ],
+    "q": {
+      "q": "作者认为我们为什么急于填满沉默？",
+      "opts": [
+        "因为沉默让人尴尬，感觉像失败",
+        "因为对方要求我们说话",
+        "因为沉默浪费时间",
+        "因为文化习惯不同"
+      ],
+      "oz": [
+        "Silence is awkward and feels like failure.",
+        "The other person asks us to speak.",
+        "Silence wastes time.",
+        "Cultural habits differ."
+      ],
+      "a": 0,
+      "z": "because it feels like failure —— 作者说的是感受，不是外部要求。"
+    }
+  },
+  {
+    "id": "en-10",
+    "level": "b2",
+    "title": "The Man Who Fixed Clocks",
+    "source": "纪录片旁白改写",
+    "body": "He worked in a room above a shop, and the room was full of ticking. Fifty clocks, none of them agreeing.\nPeople brought him things that had stopped. He never asked what they were worth. He asked when they stopped, and what happened that day.\n\"A clock is not late,\" he said once. \"It is only telling you what it thinks the time is. If it is wrong, something in it has been neglected.\" He wound the last one, set it down, and listened. Then he nodded, as if the room had finally admitted something.",
+    "zh": [
+      "他的工作间在店铺楼上，房间里全是滴答声。五十座钟，没有一座走得一致。",
+      "人们把停摆的东西送来。他从不问值多少钱，只问什么时候停的，那天发生了什么。",
+      "“钟不会迟到，”他有一次说，“它只是在告诉你它以为的时间。如果它错了，说明它里面有东西被忽略了。”他给最后一座上弦，放下，听了一会儿，然后点了点头，好像这个房间终于承认了什么。"
+    ],
+    "words": [
+      "ticking",
+      "neglected",
+      "wound"
+    ],
+    "q": {
+      "q": "“A clock is not late”这句话在文中的意思最接近？",
+      "opts": [
+        "钟表从不故障",
+        "钟只是如实呈现它被维护的状态",
+        "人不该依赖钟表",
+        "迟到是人的问题"
+      ],
+      "oz": [
+        "Clocks never break.",
+        "A clock honestly shows the state of its care.",
+        "People should not rely on clocks.",
+        "Being late is a human problem."
+      ],
+      "a": 1,
+      "z": "后半句“有东西被忽略了”说明：钟的偏差反映的是维护，不是道德。"
+    }
+  }
+]
