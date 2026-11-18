@@ -48,7 +48,7 @@ export function generateMap({ seed, lang }) {
 }
 
 export class Run {
-  constructor({ seed, lang, pool, words, hp = 100, dailyNew = 8, cap = 1 }) {
+  constructor({ seed, lang, pool, words, hp = 100, dailyNew = 12, cap = 1 }) {
     this.seed = seed;
     this.lang = lang;
     this.pool = pool;

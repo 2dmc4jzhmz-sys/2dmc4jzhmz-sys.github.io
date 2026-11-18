@@ -53,6 +53,7 @@ async function boot() {
     app.texts = await loadTexts(state.lang);
     return renderTodayView();
   }
+  if (qs.get('tab') === 'settings') return renderSettingsView();
   if (qs.has('read')) return openReading((app.texts[0] || {}).id);
   if (qs.has('devresult')) {
     startRun();
@@ -268,32 +269,6 @@ function saveSoon() {
   saveTimer = setTimeout(save, 900);
 }
 
-function exportSave() {
-  const blob = new Blob([JSON.stringify(state, null, 1)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `english-planet-${todayKey()}.json`;
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
-function importSave() {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'application/json';
-  input.onchange = async () => {
-    const f = input.files[0];
-    if (!f) return;
-    try {
-      const data = JSON.parse(await f.text());
-      localStorage.setItem('ep2_state', JSON.stringify(data));
-      location.reload();
-    } catch {
-      toast('文件读不出来');
-    }
-  };
-  input.click();
-}
 
 /* ---------- 语音 ---------- */
 
@@ -380,20 +355,6 @@ document.addEventListener('click', (e) => {
     case 'toggle-tts':
       state.settings.tts = t.checked;
       save();
-      break;
-    case 'export':
-      exportSave();
-      break;
-    case 'import':
-      importSave();
-      break;
-    case 'reset':
-      if (confirm('清空所有进度？不可恢复。')) {
-        localStorage.removeItem('ep2_state');
-        localStorage.removeItem('english_planet_v1_en');
-        localStorage.removeItem('english_planet_v1_ja');
-        location.reload();
-      }
       break;
   }
 });

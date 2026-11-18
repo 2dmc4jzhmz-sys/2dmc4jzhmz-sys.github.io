@@ -3,7 +3,7 @@ import { createRng } from '../core/rng.js';
 import { isDue, todayInt } from '../core/srs.js';
 import { wordKey } from '../core/keys.js';
 
-const NEW_PER_DAY = 8;
+const NEW_PER_DAY = 12;
 
 /**
  * 生成本局题序。

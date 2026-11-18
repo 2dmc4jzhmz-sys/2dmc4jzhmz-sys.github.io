@@ -25,7 +25,7 @@ const blankLang = () => ({
 const defaults = () => ({
   v: SCHEMA,
   lang: 'en',
-  settings: { tts: true, dailyNew: 8, hp: 100 },
+  settings: { tts: true, dailyNew: 12, hp: 100 },
   langs: { en: blankLang(), ja: blankLang() },
 });
 
@@ -47,13 +47,17 @@ export function load() {
     raw = null;
   }
   const base = defaults();
+  const force = (o) => {
+    o.settings.dailyNew = 12; // 固定 12，旧存档也一并纠正
+    return o;
+  };
   if (!raw || raw.v !== SCHEMA) {
     const fixed = merge(base, raw || {});
     fixed.v = SCHEMA;
     migrated = true;
-    return fixed;
+    return force(fixed);
   }
-  return merge(base, raw);
+  return force(merge(base, raw));
 }
 
 let migrated = false;

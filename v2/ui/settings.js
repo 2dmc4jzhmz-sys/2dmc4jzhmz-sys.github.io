@@ -17,23 +17,11 @@ export function renderSettings(ctx) {
 
   <section class="card">
     <p class="tag">每日新词</p>
-    <div class="segs">
-      ${[5, 8, 12].map((n) => `<button class="seg ${s.dailyNew === n ? 'on' : ''}" data-action="set-new" data-n="${n}">${n} 个</button>`).join('')}
-    </div>
+    <div class="fixed-row"><b>12 个</b><span>固定，不随设置变化</span></div>
     <label class="switch">
       <input type="checkbox" data-action="toggle-tts" ${s.tts ? 'checked' : ''}>
       <span>点读音时自动朗读（浏览器内置语音）</span>
     </label>
-  </section>
-
-  <section class="card">
-    <p class="tag">数据</p>
-    <p class="muted small">${Object.keys(p.words).length} 条记忆 · ${p.runs || 0} 局 · 只存在这台设备</p>
-    <div class="actions">
-      <button class="ghost" data-action="export">导出存档</button>
-      <button class="ghost" data-action="import">导入存档</button>
-    </div>
-    <button class="danger" data-action="reset">清空本机进度</button>
   </section>
 
   <section class="card">
