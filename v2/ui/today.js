@@ -16,7 +16,9 @@ export function renderToday(ctx) {
         <p class="sub">${langName} · Lv.${cap} · ${mastered} 词已掌握</p>
       </div>
     </div>
-    <button class="icon-btn" data-action="settings" aria-label="设置">⚙️</button>
+    <button class="lang-btn" data-action="toggle-lang" aria-label="切换语言">
+      ${lang === 'en' ? '⛩️ 日语' : '🇬🇧 英语'}
+    </button>
   </header>
 
   <section class="streak">

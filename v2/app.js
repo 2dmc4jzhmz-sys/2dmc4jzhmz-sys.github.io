@@ -47,6 +47,12 @@ async function boot() {
 
   // 开发用：?autostart=1 直接进副本，方便截图与手测
   const qs = new URLSearchParams(location.search);
+  if (qs.has('lang') && qs.get('lang') !== state.lang) {
+    state.lang = qs.get('lang') === 'ja' ? 'ja' : 'en';
+    app.pool = await loadPool(state.lang, levelCap(p()));
+    app.texts = await loadTexts(state.lang);
+    return renderTodayView();
+  }
   if (qs.has('read')) return openReading((app.texts[0] || {}).id);
   if (qs.has('devresult')) {
     startRun();
@@ -322,6 +328,9 @@ document.addEventListener('click', (e) => {
       break;
     case 'settings':
       renderSettingsView();
+      break;
+    case 'toggle-lang':
+      switchLang(state.lang === 'en' ? 'ja' : 'en');
       break;
     case 'start-run':
       startRun(app.view === 'result');
