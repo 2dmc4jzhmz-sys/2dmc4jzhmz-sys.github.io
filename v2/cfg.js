@@ -1,3 +1,3 @@
 /** 构建标识：改这一行即可让 Service Worker 缓存整体轮换 */
-export const BUILD = '20261118i';
-export const VERSION = 'v2.0.9';
+export const BUILD = '20261120a';
+export const VERSION = 'v2.0.8';
