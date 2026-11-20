@@ -1,21 +1,37 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0f0d1a">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="英语星球">
-<title>英语星球 · 每日一局</title>
-<link rel="icon" type="image/png" href="favicon.png">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="styles/main.css">
+<meta http-equiv="refresh" content="0;url=../">
+<title>英语星球</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0f0d1a; color: #ece9f7;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+    display: grid; place-items: center; }
+  p { font-size: 14px; color: #9a93b8; }
+</style>
 </head>
 <body>
-<div id="app"><div class="loading">加载中…</div></div>
-<div id="toast" role="status" aria-live="polite"></div>
-<script type="module" src="app.js"></script>
+<p>正在回到旧版…</p>
+<script>
+/* /v2/ 已停用：注销 v2 的 Service Worker、清掉 ep2- 缓存，然后跳回根路径的旧版 */
+(async () => {
+  const go = () => location.replace('../');
+  try {
+    if ('serviceWorker' in navigator) {
+      const rs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(rs.map((r) => r.unregister()));
+    }
+    if (window.caches) {
+      const keys = await caches.keys();
+      await Promise.all(keys.filter((k) => k.startsWith('ep2-')).map((k) => caches.delete(k)));
+    }
+  } catch (e) { /* 清不掉也照常跳转 */ }
+  go();
+})();
+/* 兜底：脚本被拦或卡住时，800ms 后强制跳转 */
+setTimeout(() => { location.replace('../'); }, 800);
+</script>
 </body>
 </html>
